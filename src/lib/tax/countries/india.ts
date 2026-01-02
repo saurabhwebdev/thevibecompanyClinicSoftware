@@ -1,0 +1,159 @@
+import { CountryTaxConfig } from "./index";
+
+// Indian States with GST codes
+const INDIAN_STATES = [
+  { code: "01", name: "Jammu & Kashmir" },
+  { code: "02", name: "Himachal Pradesh" },
+  { code: "03", name: "Punjab" },
+  { code: "04", name: "Chandigarh" },
+  { code: "05", name: "Uttarakhand" },
+  { code: "06", name: "Haryana" },
+  { code: "07", name: "Delhi" },
+  { code: "08", name: "Rajasthan" },
+  { code: "09", name: "Uttar Pradesh" },
+  { code: "10", name: "Bihar" },
+  { code: "11", name: "Sikkim" },
+  { code: "12", name: "Arunachal Pradesh" },
+  { code: "13", name: "Nagaland" },
+  { code: "14", name: "Manipur" },
+  { code: "15", name: "Mizoram" },
+  { code: "16", name: "Tripura" },
+  { code: "17", name: "Meghalaya" },
+  { code: "18", name: "Assam" },
+  { code: "19", name: "West Bengal" },
+  { code: "20", name: "Jharkhand" },
+  { code: "21", name: "Odisha" },
+  { code: "22", name: "Chhattisgarh" },
+  { code: "23", name: "Madhya Pradesh" },
+  { code: "24", name: "Gujarat" },
+  { code: "26", name: "Dadra & Nagar Haveli and Daman & Diu" },
+  { code: "27", name: "Maharashtra" },
+  { code: "29", name: "Karnataka" },
+  { code: "30", name: "Goa" },
+  { code: "31", name: "Lakshadweep" },
+  { code: "32", name: "Kerala" },
+  { code: "33", name: "Tamil Nadu" },
+  { code: "34", name: "Puducherry" },
+  { code: "35", name: "Andaman & Nicobar Islands" },
+  { code: "36", name: "Telangana" },
+  { code: "37", name: "Andhra Pradesh" },
+  { code: "38", name: "Ladakh" },
+];
+
+export const indiaConfig: CountryTaxConfig = {
+  countryCode: "IN",
+  countryName: "India",
+  currencyCode: "INR",
+  currencySymbol: "₹",
+  taxName: "GST",
+  taxAuthority: "Central Board of Indirect Taxes and Customs (CBIC)",
+  taxAuthorityWebsite: "https://www.gst.gov.in",
+
+  // GSTIN Format: 22AAAAA0000A1Z5
+  registrationNumberName: "GSTIN",
+  registrationNumberFormat: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
+  registrationNumberPlaceholder: "22AAAAA0000A1Z5",
+  registrationNumberHelpText: "15-character GST Identification Number",
+
+  defaultTaxRates: [
+    { name: "Exempt", rate: 0, code: "NIL", description: "Healthcare services (exempt)", isDefault: false, category: "exempt" },
+    { name: "GST 5%", rate: 5, code: "5", description: "Essential goods & services", isDefault: false, category: "reduced" },
+    { name: "GST 12%", rate: 12, code: "12", description: "Standard goods", isDefault: false, category: "standard" },
+    { name: "GST 18%", rate: 18, code: "18", description: "Most services", isDefault: true, category: "standard" },
+    { name: "GST 28%", rate: 28, code: "28", description: "Luxury goods & services", isDefault: false, category: "luxury" },
+  ],
+
+  taxCodeName: "SAC Code",
+  defaultTaxCodes: [
+    { code: "999311", description: "Hospital services", rate: 0, category: "Healthcare" },
+    { code: "999312", description: "Medical and dental services", rate: 0, category: "Healthcare" },
+    { code: "999313", description: "Childbirth and related services", rate: 0, category: "Healthcare" },
+    { code: "999314", description: "Nursing and physiotherapy services", rate: 0, category: "Healthcare" },
+    { code: "999315", description: "Ambulance services", rate: 0, category: "Healthcare" },
+    { code: "999316", description: "Medical laboratory services", rate: 0, category: "Healthcare" },
+    { code: "999317", description: "Blood bank services", rate: 0, category: "Healthcare" },
+    { code: "999319", description: "Other human health services", rate: 0, category: "Healthcare" },
+    { code: "998311", description: "Consulting medical services", rate: 18, category: "Professional" },
+    { code: "998312", description: "Specialized medical services", rate: 18, category: "Professional" },
+  ],
+
+  hasStates: true,
+  states: INDIAN_STATES,
+  stateLabel: "State",
+
+  businessTypes: [
+    { value: "proprietorship", label: "Proprietorship" },
+    { value: "partnership", label: "Partnership" },
+    { value: "company", label: "Private Limited Company" },
+    { value: "llp", label: "Limited Liability Partnership" },
+    { value: "trust", label: "Trust" },
+    { value: "huf", label: "Hindu Undivided Family" },
+    { value: "other", label: "Other" },
+  ],
+
+  registrationTypes: [
+    { value: "regular", label: "Regular" },
+    { value: "composition", label: "Composition Scheme" },
+    { value: "unregistered", label: "Unregistered" },
+    { value: "consumer", label: "Consumer" },
+    { value: "overseas", label: "Overseas" },
+    { value: "sez", label: "Special Economic Zone" },
+  ],
+
+  customFields: [
+    {
+      name: "pan",
+      label: "PAN",
+      type: "text",
+      required: true,
+      placeholder: "AAAAA0000A",
+      pattern: /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/,
+      patternMessage: "Invalid PAN format",
+      section: "business",
+      uppercase: true,
+      maxLength: 10,
+      helpText: "Permanent Account Number",
+    },
+    {
+      name: "defaultPlaceOfSupply",
+      label: "Default Place of Supply",
+      type: "select",
+      required: true,
+      section: "tax",
+      helpText: "Default state for inter/intra-state tax calculation",
+    },
+    {
+      name: "reverseChargeApplicable",
+      label: "Reverse Charge Applicable",
+      type: "switch",
+      section: "tax",
+      helpText: "Enable if reverse charge mechanism applies",
+    },
+    {
+      name: "tdsApplicable",
+      label: "TDS Applicable",
+      type: "switch",
+      section: "additional",
+      helpText: "Tax Deducted at Source",
+    },
+    {
+      name: "tcsApplicable",
+      label: "TCS Applicable",
+      type: "switch",
+      section: "additional",
+      helpText: "Tax Collected at Source",
+    },
+  ],
+
+  features: {
+    eInvoicing: true,
+    eInvoicingThreshold: 50000000, // 5 Crore INR
+    eWayBill: true,
+    eWayBillThreshold: 50000,
+    reverseCharge: true,
+    withholdingTax: true, // TDS
+    digitalTaxRegister: false,
+  },
+
+  defaultFinancialYearStart: { month: 4, day: 1 }, // April 1
+};
