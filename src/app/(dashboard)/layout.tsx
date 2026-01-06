@@ -28,6 +28,28 @@ export default function DashboardLayout({
     setIsHydrated(true);
   }, []);
 
+  // Fetch clinic name and update document title
+  useEffect(() => {
+    const fetchClinicName = async () => {
+      try {
+        const res = await fetch("/api/tax-config");
+        const data = await res.json();
+
+        if (data.success && data.data) {
+          const clinicName = data.data.tradeName || data.data.legalName || "Clinic";
+          document.title = `${clinicName} - Clinic Management System`;
+        }
+      } catch (error) {
+        // Fallback to default title
+        document.title = "Clinic Management System";
+      }
+    };
+
+    if (session) {
+      fetchClinicName();
+    }
+  }, [session]);
+
   const handleToggle = () => {
     const newValue = !isCollapsed;
     setIsCollapsed(newValue);
