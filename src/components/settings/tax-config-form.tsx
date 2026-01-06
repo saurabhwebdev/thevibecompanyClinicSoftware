@@ -419,10 +419,17 @@ export function TaxConfigForm() {
                 </SelectTrigger>
                 <SelectContent>
                   {SUPPORTED_COUNTRIES.map((country) => (
-                    <SelectItem key={country.code} value={country.code}>
+                    <SelectItem
+                      key={country.code}
+                      value={country.code}
+                      disabled={country.code !== "IN"}
+                    >
                       <span className="flex items-center gap-2">
                         <span>{country.flag}</span>
                         <span>{country.name}</span>
+                        {country.code !== "IN" && (
+                          <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+                        )}
                       </span>
                     </SelectItem>
                   ))}
