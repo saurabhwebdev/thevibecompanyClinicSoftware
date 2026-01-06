@@ -32,7 +32,7 @@ const UserSchema: Schema<IUser> = new Schema(
     password: {
       type: String,
       required: [true, "Password is required"],
-      minlength: [6, "Password must be at least 6 characters"],
+      minlength: [8, "Password must be at least 8 characters"],
     },
     tenantId: {
       type: Schema.Types.ObjectId,

@@ -37,7 +37,14 @@
       "Bash(git show:*)",
       "Bash(cat:*)",
       "mcp__mongodb__delete-many",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh repo view:*)",
+      "Bash(npm run dev:*)",
+      "Bash(node test-billing-system.js:*)",
+      "Bash(node test-auth.js:*)",
+      "Bash(node test-permissions.js:*)"
     ],
     "deny": [],
     "ask": []

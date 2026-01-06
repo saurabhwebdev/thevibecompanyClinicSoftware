@@ -5,6 +5,7 @@ import dbConnect from "@/lib/db/mongoose";
 import Product from "@/models/Product";
 import StockMovement from "@/models/StockMovement";
 import { sendLowStockAlertEmail } from "@/lib/email";
+import { escapeRegex } from "@/lib/security";
 
 // Generate unique SKU
 async function generateSKU(tenantId: string, type: string): Promise<string> {
@@ -34,6 +35,15 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check permission
+    const hasPermission = session.user.role.permissions.some(
+      (p) => p.resource === "inventory" && p.actions.includes("read")
+    );
+
+    if (!hasPermission && session.user.role.name !== "Admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     await dbConnect();
@@ -72,11 +82,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (search) {
+      const safeSearch = escapeRegex(search);
       query.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { sku: { $regex: search, $options: "i" } },
-        { genericName: { $regex: search, $options: "i" } },
-        { barcode: { $regex: search, $options: "i" } },
+        { name: { $regex: safeSearch, $options: "i" } },
+        { sku: { $regex: safeSearch, $options: "i" } },
+        { genericName: { $regex: safeSearch, $options: "i" } },
+        { barcode: { $regex: safeSearch, $options: "i" } },
       ];
     }
 

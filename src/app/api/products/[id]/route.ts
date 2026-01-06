@@ -5,6 +5,7 @@ import dbConnect from "@/lib/db/mongoose";
 import Product from "@/models/Product";
 import StockMovement from "@/models/StockMovement";
 import { sendLowStockAlertEmail } from "@/lib/email";
+import { isValidObjectId } from "@/lib/security";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -26,6 +27,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     const { id } = await context.params;
+
+    // Validate ObjectId
+    if (!isValidObjectId(id)) {
+      return NextResponse.json({ error: "Invalid product ID" }, { status: 400 });
+    }
 
     await dbConnect();
 
@@ -82,6 +88,12 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     }
 
     const { id } = await context.params;
+
+    // Validate ObjectId
+    if (!isValidObjectId(id)) {
+      return NextResponse.json({ error: "Invalid product ID" }, { status: 400 });
+    }
+
     const body = await request.json();
 
     await dbConnect();
@@ -172,6 +184,12 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     }
 
     const { id } = await context.params;
+
+    // Validate ObjectId
+    if (!isValidObjectId(id)) {
+      return NextResponse.json({ error: "Invalid product ID" }, { status: 400 });
+    }
+
     const body = await request.json();
     const {
       action, // "add" | "remove" | "adjust" | "purchase"
@@ -245,6 +263,13 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
         break;
 
       case "adjust":
+        // Prevent negative stock on adjust
+        if (quantity < 0) {
+          return NextResponse.json(
+            { error: "Stock cannot be set to a negative value" },
+            { status: 400 }
+          );
+        }
         newStock = quantity; // Set to exact quantity
         movementType = "adjustment";
         direction = quantity > previousStock ? "in" : "out";
@@ -328,6 +353,11 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     }
 
     const { id } = await context.params;
+
+    // Validate ObjectId
+    if (!isValidObjectId(id)) {
+      return NextResponse.json({ error: "Invalid product ID" }, { status: 400 });
+    }
 
     await dbConnect();
 

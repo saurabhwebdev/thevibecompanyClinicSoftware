@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/db/mongoose";
 import Patient from "@/models/Patient";
 import { sendPatientWelcomeEmail, isEmailEnabled } from "@/lib/email";
+import { escapeRegex } from "@/lib/security";
 
 // Generate unique patient ID
 async function generatePatientId(tenantId: string): Promise<string> {
@@ -43,12 +44,13 @@ export async function GET(request: NextRequest) {
     const query: Record<string, unknown> = { tenantId: session.user.tenant.id };
 
     if (search) {
+      const safeSearch = escapeRegex(search);
       query.$or = [
-        { firstName: { $regex: search, $options: "i" } },
-        { lastName: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
-        { phone: { $regex: search, $options: "i" } },
-        { patientId: { $regex: search, $options: "i" } },
+        { firstName: { $regex: safeSearch, $options: "i" } },
+        { lastName: { $regex: safeSearch, $options: "i" } },
+        { email: { $regex: safeSearch, $options: "i" } },
+        { phone: { $regex: safeSearch, $options: "i" } },
+        { patientId: { $regex: safeSearch, $options: "i" } },
       ];
     }
 

@@ -4,6 +4,12 @@ import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import dbConnect from "./db/mongoose";
 import { User, Role, Tenant } from "@/models";
+import {
+  sanitizeString,
+  checkAccountLockout,
+  recordFailedAttempt,
+  clearFailedAttempts,
+} from "./security";
 
 declare module "next-auth" {
   interface Session {
@@ -64,26 +70,40 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Email and password are required");
         }
 
+        // Sanitize inputs to prevent injection
+        const email = sanitizeString(credentials.email, 254).toLowerCase();
+        const tenantSlug = sanitizeString(credentials.tenantSlug, 100).toLowerCase();
+
+        // Check account lockout
+        const lockoutKey = `${email}:${tenantSlug}`;
+        const lockout = checkAccountLockout(lockoutKey);
+        if (lockout.locked) {
+          const minutesLeft = Math.ceil((lockout.lockoutUntil! - Date.now()) / 60000);
+          throw new Error(`Account locked. Try again in ${minutesLeft} minutes.`);
+        }
+
         await dbConnect();
 
         // Find tenant by slug
         const tenant = await Tenant.findOne({
-          slug: credentials.tenantSlug,
+          slug: tenantSlug,
           isActive: true
         });
 
         if (!tenant) {
-          throw new Error("Invalid tenant");
+          recordFailedAttempt(lockoutKey);
+          throw new Error("Invalid credentials");
         }
 
         // Find user by email and tenant
         const user = await User.findOne({
-          email: credentials.email.toLowerCase(),
+          email: email,
           tenantId: tenant._id,
           isActive: true,
         });
 
         if (!user) {
+          recordFailedAttempt(lockoutKey);
           throw new Error("Invalid credentials");
         }
 
@@ -93,8 +113,12 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!isPasswordValid) {
+          recordFailedAttempt(lockoutKey);
           throw new Error("Invalid credentials");
         }
+
+        // Clear failed attempts on successful login
+        clearFailedAttempts(lockoutKey);
 
         return {
           id: user._id.toString(),

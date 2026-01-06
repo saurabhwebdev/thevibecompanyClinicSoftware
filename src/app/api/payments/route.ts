@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/db/mongoose";
+import mongoose from "mongoose";
 import { Payment, Invoice, TaxConfig } from "@/models";
+import { escapeRegex, isValidObjectId } from "@/lib/security";
 
 // Helper function to format IDs
 function formatId(prefix: string, number: number, padding: number = 4): string {
@@ -43,9 +45,10 @@ export async function GET(request: NextRequest) {
     const query: Record<string, unknown> = { tenantId: session.user.tenant.id };
 
     if (search) {
+      const safeSearch = escapeRegex(search);
       query.$or = [
-        { paymentNumber: { $regex: search, $options: "i" } },
-        { transactionId: { $regex: search, $options: "i" } },
+        { paymentNumber: { $regex: safeSearch, $options: "i" } },
+        { transactionId: { $regex: safeSearch, $options: "i" } },
       ];
     }
 
@@ -131,6 +134,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate ObjectId
+    if (!isValidObjectId(data.invoiceId)) {
+      return NextResponse.json(
+        { error: "Invalid invoice ID" },
+        { status: 400 }
+      );
+    }
+
     if (!data.amount || data.amount <= 0) {
       return NextResponse.json(
         { error: "Valid payment amount is required" },
@@ -140,80 +151,101 @@ export async function POST(request: NextRequest) {
 
     await dbConnect();
 
-    // Get invoice
-    const invoice = await Invoice.findOne({
-      _id: data.invoiceId,
-      tenantId: session.user.tenant.id,
-    });
+    // Use MongoDB session for atomic operation to prevent race conditions
+    const mongoSession = await mongoose.startSession();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let payment: any;
 
-    if (!invoice) {
-      return NextResponse.json(
-        { error: "Invoice not found" },
-        { status: 404 }
-      );
-    }
+    try {
+      await mongoSession.withTransaction(async () => {
+        // Get invoice with lock (within transaction)
+        const invoice = await Invoice.findOne({
+          _id: data.invoiceId,
+          tenantId: session.user.tenant.id,
+        }).session(mongoSession);
 
-    // Check if payment exceeds balance
-    if (data.amount > invoice.balanceAmount) {
-      return NextResponse.json(
-        { error: `Payment amount cannot exceed balance of ${invoice.balanceAmount}` },
-        { status: 400 }
-      );
-    }
+        if (!invoice) {
+          throw new Error("Invoice not found");
+        }
 
-    // Get tax config for payment number
-    const taxConfig = await TaxConfig.findOne({ tenantId: session.user.tenant.id });
-    const lastPayment = await Payment.findOne({ tenantId: session.user.tenant.id })
-      .sort({ createdAt: -1 });
+        // Check if payment exceeds balance (fresh read within transaction)
+        if (data.amount > invoice.balanceAmount) {
+          throw new Error(`Payment amount cannot exceed balance of ${invoice.balanceAmount}`);
+        }
 
-    let paymentCounter = 1;
-    if (lastPayment?.paymentNumber) {
-      const match = lastPayment.paymentNumber.match(/\d+$/);
-      if (match) {
-        paymentCounter = parseInt(match[0]) + 1;
+        // Get payment number
+        const lastPayment = await Payment.findOne({ tenantId: session.user.tenant.id })
+          .sort({ createdAt: -1 })
+          .session(mongoSession);
+
+        let paymentCounter = 1;
+        if (lastPayment?.paymentNumber) {
+          const match = lastPayment.paymentNumber.match(/\d+$/);
+          if (match) {
+            paymentCounter = parseInt(match[0]) + 1;
+          }
+        }
+
+        const paymentNumber = formatId("PAY", paymentCounter);
+
+        // Create payment within transaction
+        const payments = await Payment.create([{
+          tenantId: session.user.tenant.id,
+          paymentNumber,
+          invoiceId: data.invoiceId,
+          patientId: invoice.patientId,
+          amount: data.amount,
+          paymentDate: data.paymentDate || new Date(),
+          paymentMethod: data.paymentMethod,
+          transactionId: data.transactionId,
+          chequeNumber: data.chequeNumber,
+          chequeDate: data.chequeDate,
+          bankName: data.bankName,
+          cardLast4: data.cardLast4,
+          cardType: data.cardType,
+          upiId: data.upiId,
+          insuranceClaimNumber: data.insuranceClaimNumber,
+          insuranceProvider: data.insuranceProvider,
+          status: data.status || "completed",
+          notes: data.notes,
+          receiptNumber: formatId("RCP", paymentCounter),
+          receiptGenerated: true,
+          createdBy: session.user.id,
+        }], { session: mongoSession });
+
+        payment = payments[0];
+
+        // Update invoice payment status atomically
+        invoice.paidAmount += data.amount;
+        invoice.balanceAmount = invoice.grandTotal - invoice.paidAmount;
+        invoice.paymentMethod = data.paymentMethod;
+
+        if (invoice.paidAmount >= invoice.grandTotal) {
+          invoice.paymentStatus = "paid";
+          invoice.status = "paid";
+        } else {
+          invoice.paymentStatus = "partial";
+        }
+
+        await invoice.save({ session: mongoSession });
+      });
+    } catch (txError) {
+      await mongoSession.endSession();
+      const message = txError instanceof Error ? txError.message : "Failed to create payment";
+      if (message.includes("not found")) {
+        return NextResponse.json({ error: message }, { status: 404 });
       }
+      if (message.includes("cannot exceed")) {
+        return NextResponse.json({ error: message }, { status: 400 });
+      }
+      throw txError;
     }
 
-    const paymentNumber = formatId("PAY", paymentCounter);
+    await mongoSession.endSession();
 
-    // Create payment
-    const payment = await Payment.create({
-      tenantId: session.user.tenant.id,
-      paymentNumber,
-      invoiceId: data.invoiceId,
-      patientId: invoice.patientId,
-      amount: data.amount,
-      paymentDate: data.paymentDate || new Date(),
-      paymentMethod: data.paymentMethod,
-      transactionId: data.transactionId,
-      chequeNumber: data.chequeNumber,
-      chequeDate: data.chequeDate,
-      bankName: data.bankName,
-      cardLast4: data.cardLast4,
-      cardType: data.cardType,
-      upiId: data.upiId,
-      insuranceClaimNumber: data.insuranceClaimNumber,
-      insuranceProvider: data.insuranceProvider,
-      status: data.status || "completed",
-      notes: data.notes,
-      receiptNumber: formatId("RCP", paymentCounter),
-      receiptGenerated: true,
-      createdBy: session.user.id,
-    });
-
-    // Update invoice payment status
-    invoice.paidAmount += data.amount;
-    invoice.balanceAmount = invoice.grandTotal - invoice.paidAmount;
-    invoice.paymentMethod = data.paymentMethod;
-
-    if (invoice.paidAmount >= invoice.grandTotal) {
-      invoice.paymentStatus = "paid";
-      invoice.status = "paid";
-    } else {
-      invoice.paymentStatus = "partial";
+    if (!payment) {
+      return NextResponse.json({ error: "Failed to create payment" }, { status: 500 });
     }
-
-    await invoice.save();
 
     const populatedPayment = await Payment.findById(payment._id)
       .populate("invoiceId", "invoiceNumber grandTotal customerName")

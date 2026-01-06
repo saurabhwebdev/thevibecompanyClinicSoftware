@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/db/mongoose";
 import { User, Role } from "@/models";
+import { validatePassword, isValidObjectId } from "@/lib/security";
 
 // GET all users for the tenant
 export async function GET() {
@@ -61,6 +62,23 @@ export async function POST(request: NextRequest) {
     if (!name || !email || !password) {
       return NextResponse.json(
         { error: "Name, email, and password are required" },
+        { status: 400 }
+      );
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      return NextResponse.json(
+        { error: passwordValidation.message },
+        { status: 400 }
+      );
+    }
+
+    // Validate roleId if provided
+    if (roleId && !isValidObjectId(roleId)) {
+      return NextResponse.json(
+        { error: "Invalid role ID" },
         { status: 400 }
       );
     }

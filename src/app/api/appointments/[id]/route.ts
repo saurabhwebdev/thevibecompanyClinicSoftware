@@ -7,6 +7,24 @@ import Appointment from "@/models/Appointment";
 import Patient from "@/models/Patient";
 import { sendAppointmentCancellationEmail, sendAppointmentRescheduleEmail, isEmailEnabled } from "@/lib/email";
 import { format } from "date-fns";
+import { isValidObjectId } from "@/lib/security";
+
+// Valid status transitions
+const VALID_STATUS_TRANSITIONS: Record<string, string[]> = {
+  scheduled: ["confirmed", "checked-in", "cancelled", "no-show"],
+  confirmed: ["checked-in", "cancelled", "no-show"],
+  "checked-in": ["in-progress", "cancelled"],
+  "in-progress": ["completed", "cancelled"],
+  completed: [], // Terminal state
+  cancelled: [], // Terminal state
+  "no-show": ["scheduled"], // Can reschedule a no-show
+};
+
+function isValidStatusTransition(currentStatus: string, newStatus: string): boolean {
+  if (currentStatus === newStatus) return true; // Same status is always valid
+  const validTransitions = VALID_STATUS_TRANSITIONS[currentStatus] || [];
+  return validTransitions.includes(newStatus);
+}
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -29,6 +47,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     const { id } = await context.params;
+
+    // Validate ObjectId
+    if (!isValidObjectId(id)) {
+      return NextResponse.json({ error: "Invalid appointment ID" }, { status: 400 });
+    }
 
     await dbConnect();
 
@@ -72,6 +95,12 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     }
 
     const { id } = await context.params;
+
+    // Validate ObjectId
+    if (!isValidObjectId(id)) {
+      return NextResponse.json({ error: "Invalid appointment ID" }, { status: 400 });
+    }
+
     const body = await request.json();
 
     await dbConnect();
@@ -83,6 +112,16 @@ export async function PUT(request: NextRequest, context: RouteContext) {
 
     if (!appointment) {
       return NextResponse.json({ error: "Appointment not found" }, { status: 404 });
+    }
+
+    // Validate status transition if status is being changed
+    if (body.status && body.status !== appointment.status) {
+      if (!isValidStatusTransition(appointment.status, body.status)) {
+        return NextResponse.json({
+          error: `Invalid status transition from "${appointment.status}" to "${body.status}"`,
+          validTransitions: VALID_STATUS_TRANSITIONS[appointment.status] || [],
+        }, { status: 400 });
+      }
     }
 
     const patient = await Patient.findById(appointment.patientId);
@@ -197,6 +236,11 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     }
 
     const { id } = await context.params;
+
+    // Validate ObjectId
+    if (!isValidObjectId(id)) {
+      return NextResponse.json({ error: "Invalid appointment ID" }, { status: 400 });
+    }
 
     await dbConnect();
 

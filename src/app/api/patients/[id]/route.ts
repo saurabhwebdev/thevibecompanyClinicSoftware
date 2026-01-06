@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/db/mongoose";
 import Patient from "@/models/Patient";
+import { Appointment, Invoice, Prescription, MedicalRecord } from "@/models";
+import { isValidObjectId } from "@/lib/security";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -25,6 +27,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     const { id } = await context.params;
+
+    // Validate ObjectId
+    if (!isValidObjectId(id)) {
+      return NextResponse.json({ error: "Invalid patient ID" }, { status: 400 });
+    }
 
     await dbConnect();
 
@@ -64,6 +71,12 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     }
 
     const { id } = await context.params;
+
+    // Validate ObjectId
+    if (!isValidObjectId(id)) {
+      return NextResponse.json({ error: "Invalid patient ID" }, { status: 400 });
+    }
+
     const body = await request.json();
 
     await dbConnect();
@@ -151,6 +164,15 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
 
     const { id } = await context.params;
 
+    // Validate ObjectId
+    if (!isValidObjectId(id)) {
+      return NextResponse.json({ error: "Invalid patient ID" }, { status: 400 });
+    }
+
+    // Check for force delete query param
+    const { searchParams } = new URL(request.url);
+    const forceDelete = searchParams.get("force") === "true";
+
     await dbConnect();
 
     const patient = await Patient.findOne({
@@ -162,11 +184,48 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
 
+    // Check for linked records (cascade check)
+    const [appointmentCount, invoiceCount, prescriptionCount, medicalRecordCount] = await Promise.all([
+      Appointment.countDocuments({ patientId: id, tenantId: session.user.tenant.id }),
+      Invoice.countDocuments({ patientId: id, tenantId: session.user.tenant.id }),
+      Prescription.countDocuments({ patientId: id, tenantId: session.user.tenant.id }),
+      MedicalRecord.countDocuments({ patientId: id, tenantId: session.user.tenant.id }),
+    ]);
+
+    const linkedRecords = {
+      appointments: appointmentCount,
+      invoices: invoiceCount,
+      prescriptions: prescriptionCount,
+      medicalRecords: medicalRecordCount,
+    };
+
+    const totalLinkedRecords = appointmentCount + invoiceCount + prescriptionCount + medicalRecordCount;
+
+    if (totalLinkedRecords > 0 && !forceDelete) {
+      return NextResponse.json({
+        error: "Cannot delete patient with linked records",
+        linkedRecords,
+        message: `This patient has ${totalLinkedRecords} linked record(s). Consider deactivating the patient instead, or use force=true to permanently delete all linked data.`,
+      }, { status: 400 });
+    }
+
+    // If force delete, delete all linked records first
+    if (forceDelete && totalLinkedRecords > 0) {
+      await Promise.all([
+        Appointment.deleteMany({ patientId: id, tenantId: session.user.tenant.id }),
+        Invoice.deleteMany({ patientId: id, tenantId: session.user.tenant.id }),
+        Prescription.deleteMany({ patientId: id, tenantId: session.user.tenant.id }),
+        MedicalRecord.deleteMany({ patientId: id, tenantId: session.user.tenant.id }),
+      ]);
+    }
+
     await Patient.findByIdAndDelete(id);
 
     return NextResponse.json({
       success: true,
-      message: "Patient deleted successfully",
+      message: forceDelete && totalLinkedRecords > 0
+        ? `Patient and ${totalLinkedRecords} linked record(s) deleted successfully`
+        : "Patient deleted successfully",
     });
   } catch (error) {
     console.error("Delete patient error:", error);

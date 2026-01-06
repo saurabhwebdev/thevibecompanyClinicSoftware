@@ -5,6 +5,58 @@ import dbConnect from "@/lib/db/mongoose";
 import { TaxConfig } from "@/models";
 import { getCountryConfig } from "@/lib/tax/countries";
 
+// Helper to mask sensitive keys
+function maskSensitiveData(config: Record<string, unknown> | null): Record<string, unknown> | null {
+  if (!config) return null;
+
+  const data = JSON.parse(JSON.stringify(config));
+
+  // Mask Razorpay keys
+  if (data.razorpaySettings) {
+    if (data.razorpaySettings.keyId) {
+      data.razorpaySettings.keyId = data.razorpaySettings.keyId.slice(0, 8) + "********";
+    }
+    if (data.razorpaySettings.keySecret) {
+      data.razorpaySettings.keySecret = "********";
+    }
+    if (data.razorpaySettings.webhookSecret) {
+      data.razorpaySettings.webhookSecret = "********";
+    }
+  }
+
+  // Mask gateway settings
+  if (data.gatewaySettings) {
+    for (const gateway of Object.keys(data.gatewaySettings)) {
+      const settings = data.gatewaySettings[gateway];
+      if (settings) {
+        // Mask common key patterns
+        for (const key of Object.keys(settings)) {
+          if (key.toLowerCase().includes("secret") ||
+              key.toLowerCase().includes("key") ||
+              key.toLowerCase().includes("password") ||
+              key.toLowerCase().includes("token")) {
+            if (typeof settings[key] === "string" && settings[key].length > 0) {
+              settings[key] = "********";
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Mask digital compliance credentials
+  if (data.digitalCompliance?.apiCredentials) {
+    if (data.digitalCompliance.apiCredentials.password) {
+      data.digitalCompliance.apiCredentials.password = "********";
+    }
+    if (data.digitalCompliance.apiCredentials.apiKey) {
+      data.digitalCompliance.apiCredentials.apiKey = "********";
+    }
+  }
+
+  return data;
+}
+
 // GET tax config for the tenant
 export async function GET() {
   try {
@@ -17,11 +69,14 @@ export async function GET() {
 
     const taxConfig = await TaxConfig.findOne({
       tenantId: session.user.tenant.id
-    });
+    }).lean();
+
+    // Mask sensitive data before sending to client
+    const safeData = maskSensitiveData(taxConfig as Record<string, unknown> | null);
 
     return NextResponse.json({
       success: true,
-      data: taxConfig,
+      data: safeData,
       exists: !!taxConfig
     });
   } catch (error) {

@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/db/mongoose";
+import mongoose from "mongoose";
 import Appointment from "@/models/Appointment";
 import Patient from "@/models/Patient";
 import { sendAppointmentConfirmationEmail, isEmailEnabled } from "@/lib/email";
 import { format } from "date-fns";
+import { isValidObjectId } from "@/lib/security";
 
 // Generate unique appointment ID
 async function generateAppointmentId(tenantId: string): Promise<string> {
@@ -144,6 +146,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate ObjectIds
+    if (!isValidObjectId(patientId) || !isValidObjectId(doctorId)) {
+      return NextResponse.json(
+        { error: "Invalid patient or doctor ID" },
+        { status: 400 }
+      );
+    }
+
     await dbConnect();
 
     // Verify patient exists
@@ -156,48 +166,69 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Patient not found" }, { status: 404 });
     }
 
-    // Check for conflicting appointments
-    const appointmentDateObj = new Date(appointmentDate);
-    const dateStart = new Date(appointmentDateObj);
-    dateStart.setHours(0, 0, 0, 0);
-    const dateEnd = new Date(appointmentDateObj);
-    dateEnd.setHours(23, 59, 59, 999);
+    // Use MongoDB session for atomic operation to prevent race conditions
+    const mongoSession = await mongoose.startSession();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let appointment: any;
 
-    const conflictingAppointment = await Appointment.findOne({
-      tenantId: session.user.tenant.id,
-      doctorId,
-      appointmentDate: { $gte: dateStart, $lte: dateEnd },
-      startTime,
-      status: { $nin: ["cancelled", "no-show"] },
-    });
+    try {
+      await mongoSession.withTransaction(async () => {
+        // Check for conflicting appointments within transaction
+        const appointmentDateObj = new Date(appointmentDate);
+        const dateStart = new Date(appointmentDateObj);
+        dateStart.setHours(0, 0, 0, 0);
+        const dateEnd = new Date(appointmentDateObj);
+        dateEnd.setHours(23, 59, 59, 999);
 
-    if (conflictingAppointment) {
-      return NextResponse.json(
-        { error: "Doctor already has an appointment at this time" },
-        { status: 400 }
-      );
+        const conflictingAppointment = await Appointment.findOne({
+          tenantId: session.user.tenant.id,
+          doctorId,
+          appointmentDate: { $gte: dateStart, $lte: dateEnd },
+          startTime,
+          status: { $nin: ["cancelled", "no-show"] },
+        }).session(mongoSession);
+
+        if (conflictingAppointment) {
+          throw new Error("Doctor already has an appointment at this time");
+        }
+
+        const appointmentId = await generateAppointmentId(session.user.tenant.id);
+
+        const appointments = await Appointment.create([{
+          appointmentId,
+          patientId,
+          doctorId,
+          appointmentDate: appointmentDateObj,
+          startTime,
+          endTime,
+          duration: duration || 30,
+          type: type || "consultation",
+          reason,
+          notes,
+          symptoms: symptoms || [],
+          priority: priority || "normal",
+          isFirstVisit: isFirstVisit || false,
+          status: "scheduled",
+          tenantId: session.user.tenant.id,
+          createdBy: session.user.id,
+        }], { session: mongoSession });
+
+        appointment = appointments[0];
+      });
+    } catch (txError) {
+      await mongoSession.endSession();
+      const message = txError instanceof Error ? txError.message : "Failed to create appointment";
+      if (message.includes("already has an appointment")) {
+        return NextResponse.json({ error: message }, { status: 400 });
+      }
+      throw txError;
     }
 
-    const appointmentId = await generateAppointmentId(session.user.tenant.id);
+    await mongoSession.endSession();
 
-    const appointment = await Appointment.create({
-      appointmentId,
-      patientId,
-      doctorId,
-      appointmentDate: appointmentDateObj,
-      startTime,
-      endTime,
-      duration: duration || 30,
-      type: type || "consultation",
-      reason,
-      notes,
-      symptoms: symptoms || [],
-      priority: priority || "normal",
-      isFirstVisit: isFirstVisit || false,
-      status: "scheduled",
-      tenantId: session.user.tenant.id,
-      createdBy: session.user.id,
-    });
+    if (!appointment) {
+      return NextResponse.json({ error: "Failed to create appointment" }, { status: 500 });
+    }
 
     const appointmentResponse = await Appointment.findById(appointment._id)
       .populate("patientId", "firstName lastName patientId phone email")
@@ -213,7 +244,7 @@ export async function POST(request: NextRequest) {
           patientEmail: patient.email,
           patientName: `${patient.firstName} ${patient.lastName}`,
           clinicName: session.user.tenant.name,
-          appointmentDate: format(appointmentDateObj, "MMMM dd, yyyy"),
+          appointmentDate: format(new Date(appointmentDate), "MMMM dd, yyyy"),
           appointmentTime: startTime,
           doctorName: populatedDoctor?.name || "Doctor",
           appointmentType: type || "consultation",

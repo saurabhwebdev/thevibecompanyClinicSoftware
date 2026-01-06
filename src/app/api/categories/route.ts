@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/db/mongoose";
 import Category from "@/models/Category";
+import { escapeRegex } from "@/lib/security";
 
 // GET all categories
 export async function GET(request: NextRequest) {
@@ -10,6 +11,15 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check permission
+    const hasPermission = session.user.role.permissions.some(
+      (p) => p.resource === "inventory" && p.actions.includes("read")
+    );
+
+    if (!hasPermission && session.user.role.name !== "Admin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     await dbConnect();
@@ -80,10 +90,11 @@ export async function POST(request: NextRequest) {
 
     await dbConnect();
 
-    // Check for duplicate name
+    // Check for duplicate name (case-insensitive)
+    const safeName = escapeRegex(name);
     const existing = await Category.findOne({
       tenantId: session.user.tenant.id,
-      name: { $regex: new RegExp(`^${name}$`, "i") },
+      name: { $regex: new RegExp(`^${safeName}$`, "i") },
     });
 
     if (existing) {
