@@ -372,8 +372,8 @@ export default async function DashboardPage() {
             {upcomingAppointments.length > 0 ? (
               <div className="space-y-4">
                 {upcomingAppointments.map((appointment) => {
-                  const patient = appointment.patientId as { firstName: string; lastName: string };
-                  const doctor = appointment.doctorId as { name: string };
+                  const patient = appointment.patientId as any;
+                  const doctor = appointment.doctorId as any;
                   return (
                     <div key={appointment._id.toString()} className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -382,10 +382,10 @@ export default async function DashboardPage() {
                         </div>
                         <div>
                           <p className="font-medium">
-                            {patient.firstName} {patient.lastName}
+                            {patient?.firstName} {patient?.lastName}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Dr. {doctor.name} • {appointment.startTime}
+                            Dr. {doctor?.name} • {appointment.startTime}
                           </p>
                         </div>
                       </div>
