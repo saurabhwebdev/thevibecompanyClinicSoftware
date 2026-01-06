@@ -30,9 +30,10 @@ interface DashboardHeaderProps {
     };
   };
   onMenuClick?: () => void;
+  onMobileMenuClick?: () => void;
 }
 
-export function DashboardHeader({ user, onMenuClick }: DashboardHeaderProps) {
+export function DashboardHeader({ user, onMenuClick, onMobileMenuClick }: DashboardHeaderProps) {
   const initials = (user?.name || "U")
     .split(" ")
     .map((n) => n[0])
@@ -46,9 +47,20 @@ export function DashboardHeader({ user, onMenuClick }: DashboardHeaderProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-card">
-      <div className="flex h-16 items-center justify-between">
+      <div className="flex h-14 sm:h-16 items-center justify-between">
         <div className="flex items-center">
-          {/* Menu toggle - aligned with sidebar */}
+          {/* Mobile Menu Button */}
+          <div className="flex lg:hidden items-center justify-center w-14 sm:w-16 h-14 sm:h-16 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onMobileMenuClick}
+              className="h-9 w-9 sm:h-10 sm:w-10"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          </div>
+          {/* Desktop Menu Toggle - aligned with sidebar */}
           <div className="hidden lg:flex items-center justify-center w-16 h-16 flex-shrink-0">
             <Button
               variant="ghost"
@@ -59,29 +71,29 @@ export function DashboardHeader({ user, onMenuClick }: DashboardHeaderProps) {
               <Menu className="h-5 w-5" />
             </Button>
           </div>
-          <h1 className="text-xl font-bold text-primary px-4 lg:px-0">
+          <h1 className="text-lg sm:text-xl font-bold text-primary px-2 sm:px-4 lg:px-0 truncate max-w-[150px] sm:max-w-none">
             {user?.tenant?.name || "Clinic"}
           </h1>
         </div>
 
-        <div className="flex items-center gap-2 px-4">
+        <div className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4">
           <ThemeToggle />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                <Avatar className="h-10 w-10">
+              <Button variant="ghost" className="relative h-9 w-9 sm:h-10 sm:w-10 rounded-full">
+                <Avatar className="h-9 w-9 sm:h-10 sm:w-10">
                   <AvatarImage key={`header-${avatarStyle}-${avatarSeed}`} src={avatarUrl} alt={user?.name || "User"} />
-                  <AvatarFallback className="bg-primary text-primary-foreground">
+                  <AvatarFallback className="bg-primary text-primary-foreground text-xs sm:text-sm">
                     {initials}
                   </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuContent className="w-48 sm:w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user?.name || "User"}</p>
-                  <p className="text-xs leading-none text-muted-foreground">
+                  <p className="text-sm font-medium leading-none truncate">{user?.name || "User"}</p>
+                  <p className="text-xs leading-none text-muted-foreground truncate">
                     {user?.email || ""}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground mt-1">

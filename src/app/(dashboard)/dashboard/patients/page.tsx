@@ -416,11 +416,11 @@ export default function PatientsPage() {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Patients</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Patients</h2>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Manage patient records and information
           </p>
         </div>
@@ -428,7 +428,7 @@ export default function PatientsPage() {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Button onClick={() => setIsCreateDialogOpen(true)} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             Add Patient
           </Button>
@@ -441,10 +441,10 @@ export default function PatientsPage() {
         transition={{ duration: 0.4, delay: 0.2 }}
       >
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>All Patients ({patients.length})</CardTitle>
-              <div className="relative w-72">
+          <CardHeader className="px-4 sm:px-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <CardTitle className="text-lg sm:text-xl">All Patients ({patients.length})</CardTitle>
+              <div className="relative w-full sm:w-72">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Search patients..."

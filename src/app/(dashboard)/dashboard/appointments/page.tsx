@@ -562,14 +562,14 @@ export default function AppointmentsPage() {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Appointments</h2>
-          <p className="text-muted-foreground">Manage patient appointments</p>
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Appointments</h2>
+          <p className="text-sm sm:text-base text-muted-foreground">Manage patient appointments</p>
         </div>
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
+          <Button onClick={() => setIsCreateDialogOpen(true)} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             New Appointment
           </Button>
@@ -577,27 +577,27 @@ export default function AppointmentsPage() {
       </motion.div>
 
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-2">
+        <CardHeader className="px-3 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+            <div className="flex flex-wrap items-center gap-2">
               <Tabs value={view} onValueChange={(v) => setView(v as "list" | "calendar")}>
-                <TabsList>
-                  <TabsTrigger value="list"><List className="h-4 w-4 mr-1" /> List</TabsTrigger>
-                  <TabsTrigger value="calendar"><CalendarIcon className="h-4 w-4 mr-1" /> Calendar</TabsTrigger>
+                <TabsList className="h-9">
+                  <TabsTrigger value="list" className="text-xs sm:text-sm px-2 sm:px-3"><List className="h-4 w-4 sm:mr-1" /> <span className="hidden sm:inline">List</span></TabsTrigger>
+                  <TabsTrigger value="calendar" className="text-xs sm:text-sm px-2 sm:px-3"><CalendarIcon className="h-4 w-4 sm:mr-1" /> <span className="hidden sm:inline">Calendar</span></TabsTrigger>
                 </TabsList>
               </Tabs>
               {view === "calendar" && (
                 <Tabs value={calendarView} onValueChange={(v) => setCalendarView(v as "week" | "month")}>
-                  <TabsList>
-                    <TabsTrigger value="week">Week</TabsTrigger>
-                    <TabsTrigger value="month">Month</TabsTrigger>
+                  <TabsList className="h-9">
+                    <TabsTrigger value="week" className="text-xs sm:text-sm px-2 sm:px-3">Week</TabsTrigger>
+                    <TabsTrigger value="month" className="text-xs sm:text-sm px-2 sm:px-3">Month</TabsTrigger>
                   </TabsList>
                 </Tabs>
               )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-full sm:w-40">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -607,7 +607,7 @@ export default function AppointmentsPage() {
                 </SelectContent>
               </Select>
               {view === "list" && (
-                <div className="relative w-64">
+                <div className="relative w-full sm:w-64">
                   <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     placeholder="Search appointments..."
@@ -750,18 +750,18 @@ export default function AppointmentsPage() {
               </div>
 
               {calendarView === "week" ? (
-                <div className="grid grid-cols-7 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
                   {weekDays.map((day) => (
-                    <div key={day.toISOString()} className="border rounded-lg p-2 min-h-[200px]">
+                    <div key={day.toISOString()} className="border rounded-lg p-2 min-h-[120px] sm:min-h-[200px]">
                       <div className={`text-center mb-2 p-1 rounded ${isSameDay(day, new Date()) ? "bg-primary text-primary-foreground" : ""}`}>
                         <p className="text-xs">{format(day, "EEE")}</p>
-                        <p className="font-bold">{format(day, "dd")}</p>
+                        <p className="font-bold text-sm sm:text-base">{format(day, "dd")}</p>
                       </div>
                       <div className="space-y-1">
                         {getAppointmentsForDay(day).map((apt) => (
                           <div
                             key={apt._id}
-                            className="p-2 rounded text-xs bg-primary/10 cursor-pointer hover:bg-primary/20"
+                            className="p-1.5 sm:p-2 rounded text-xs bg-primary/10 cursor-pointer hover:bg-primary/20"
                             onClick={() => openEditDialog(apt)}
                           >
                             <p className="font-medium">{apt.startTime}</p>
@@ -773,9 +773,9 @@ export default function AppointmentsPage() {
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-7 gap-1">
+                <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
                   {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((d) => (
-                    <div key={d} className="text-center font-medium text-sm py-2">{d}</div>
+                    <div key={d} className="text-center font-medium text-[10px] sm:text-sm py-1 sm:py-2">{d}</div>
                   ))}
                   {Array.from({ length: (weekDays[0].getDay() + 6) % 7 }).map((_, i) => (
                     <div key={`empty-${i}`} className="p-2"></div>
@@ -785,11 +785,11 @@ export default function AppointmentsPage() {
                     return (
                       <div
                         key={day.toISOString()}
-                        className={`border rounded p-2 min-h-[80px] ${isSameDay(day, new Date()) ? "bg-primary/5 border-primary" : ""}`}
+                        className={`border rounded p-1 sm:p-2 min-h-[50px] sm:min-h-[80px] ${isSameDay(day, new Date()) ? "bg-primary/5 border-primary" : ""}`}
                       >
-                        <p className="text-sm font-medium">{format(day, "d")}</p>
+                        <p className="text-xs sm:text-sm font-medium">{format(day, "d")}</p>
                         {dayAppointments.length > 0 && (
-                          <p className="text-xs text-primary">{dayAppointments.length} apt{dayAppointments.length > 1 ? "s" : ""}</p>
+                          <p className="text-[10px] sm:text-xs text-primary">{dayAppointments.length}</p>
                         )}
                       </div>
                     );

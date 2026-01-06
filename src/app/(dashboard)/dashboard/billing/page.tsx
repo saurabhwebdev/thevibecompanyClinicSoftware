@@ -750,14 +750,14 @@ export default function BillingPage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}
-        className="flex h-[calc(100vh-4rem)] gap-4"
+        className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-4rem)] gap-4"
       >
         {/* Left Panel - Products & Search */}
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className="flex-1 flex flex-col gap-4 overflow-hidden"
+        className="flex-1 flex flex-col gap-4 overflow-hidden min-h-[400px] lg:min-h-0"
       >
         {/* Patient Selection */}
         <Card>
@@ -810,7 +810,7 @@ export default function BillingPage() {
                         <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[400px] p-0" align="start">
+                    <PopoverContent className="w-[calc(100vw-2rem)] sm:w-[400px] p-0" align="start">
                       <Command shouldFilter={false}>
                         <CommandInput
                           placeholder="Type to search patients..."
@@ -863,7 +863,7 @@ export default function BillingPage() {
               </TabsContent>
 
               <TabsContent value="walkin" className="mt-0">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="space-y-2">
                     <Label>Customer Name *</Label>
                     <Input
@@ -938,7 +938,7 @@ export default function BillingPage() {
                   <p>{searchProduct ? "No products found" : "No products available"}</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
                   <AnimatePresence mode="popLayout">
                   {products.map((product, index) => (
                     <motion.button
@@ -987,8 +987,9 @@ export default function BillingPage() {
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
+        className="w-full lg:w-[400px] flex-shrink-0"
       >
-      <Card className="w-[400px] flex flex-col">
+      <Card className="w-full flex flex-col max-h-[500px] lg:max-h-none lg:h-full">
         <CardHeader className="pb-3 border-b">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">

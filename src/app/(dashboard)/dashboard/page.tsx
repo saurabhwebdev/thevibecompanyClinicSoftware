@@ -169,35 +169,35 @@ export default async function DashboardPage() {
       : 0;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 sm:space-y-6 lg:space-y-8">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">
             Welcome back, {session.user.name}!
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             {format(today, "EEEE, MMMM d, yyyy")} • Here&apos;s what&apos;s happening today.
           </p>
         </div>
         <div className="flex gap-2">
           <Link href="/dashboard/patients/new">
-            <Button>
-              <UserPlus className="h-4 w-4 mr-2" />
-              New Patient
+            <Button size="sm" className="sm:size-default">
+              <UserPlus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">New Patient</span>
             </Button>
           </Link>
           <Link href="/dashboard/appointments/new">
-            <Button variant="outline">
-              <Calendar className="h-4 w-4 mr-2" />
-              Book Appointment
+            <Button variant="outline" size="sm" className="sm:size-default">
+              <Calendar className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Book Appointment</span>
             </Button>
           </Link>
         </div>
       </div>
 
       {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         {/* Total Patients */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -291,16 +291,18 @@ export default async function DashboardPage() {
       {/* Alerts */}
       {lowStockProducts > 0 && (
         <Card className="border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20">
-          <CardContent className="flex items-center gap-3 pt-6">
-            <AlertTriangle className="h-5 w-5 text-yellow-600" />
-            <div className="flex-1">
-              <p className="font-medium">Low Stock Alert</p>
-              <p className="text-sm text-muted-foreground">
-                {lowStockProducts} product{lowStockProducts !== 1 ? "s" : ""} running low on stock
-              </p>
+          <CardContent className="flex flex-col sm:flex-row sm:items-center gap-3 pt-4 sm:pt-6">
+            <div className="flex items-center gap-3 flex-1">
+              <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
+              <div>
+                <p className="font-medium text-sm sm:text-base">Low Stock Alert</p>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  {lowStockProducts} product{lowStockProducts !== 1 ? "s" : ""} running low on stock
+                </p>
+              </div>
             </div>
-            <Link href="/dashboard/inventory">
-              <Button variant="outline" size="sm">
+            <Link href="/dashboard/inventory" className="w-full sm:w-auto">
+              <Button variant="outline" size="sm" className="w-full sm:w-auto">
                 View Inventory
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
@@ -417,29 +419,29 @@ export default async function DashboardPage() {
           <CardDescription>Common tasks and shortcuts</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-2 sm:gap-3 grid-cols-2 lg:grid-cols-4">
             <Link href="/dashboard/patients/new" className="block">
-              <Button variant="outline" className="w-full justify-start">
-                <UserPlus className="h-4 w-4 mr-2" />
-                Register Patient
+              <Button variant="outline" className="w-full justify-start text-xs sm:text-sm h-9 sm:h-10">
+                <UserPlus className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                <span className="truncate">Register Patient</span>
               </Button>
             </Link>
             <Link href="/dashboard/appointments/new" className="block">
-              <Button variant="outline" className="w-full justify-start">
-                <Calendar className="h-4 w-4 mr-2" />
-                Book Appointment
+              <Button variant="outline" className="w-full justify-start text-xs sm:text-sm h-9 sm:h-10">
+                <Calendar className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                <span className="truncate">Book Appointment</span>
               </Button>
             </Link>
             <Link href="/dashboard/prescriptions" className="block">
-              <Button variant="outline" className="w-full justify-start">
-                <Pill className="h-4 w-4 mr-2" />
-                View Prescriptions
+              <Button variant="outline" className="w-full justify-start text-xs sm:text-sm h-9 sm:h-10">
+                <Pill className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                <span className="truncate">Prescriptions</span>
               </Button>
             </Link>
             <Link href="/dashboard/inventory" className="block">
-              <Button variant="outline" className="w-full justify-start">
-                <Package className="h-4 w-4 mr-2" />
-                Manage Inventory
+              <Button variant="outline" className="w-full justify-start text-xs sm:text-sm h-9 sm:h-10">
+                <Package className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+                <span className="truncate">Inventory</span>
               </Button>
             </Link>
           </div>

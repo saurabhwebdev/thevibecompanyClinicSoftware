@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
-import { DashboardSidebar } from "@/components/dashboard/sidebar";
+import { DashboardSidebar, MobileSidebar } from "@/components/dashboard/sidebar";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { CurrencyProvider } from "@/components/currency-provider";
 import { Loader2 } from "lucide-react";
@@ -17,6 +17,7 @@ export default function DashboardLayout({
 }) {
   const { data: session, status } = useSession();
   const [isCollapsed, setIsCollapsed] = useState(true); // Default collapsed
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
@@ -56,6 +57,14 @@ export default function DashboardLayout({
     localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(newValue));
   };
 
+  const handleMobileMenuToggle = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleMobileMenuClose = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   if (status === "loading") {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -80,10 +89,15 @@ export default function DashboardLayout({
   return (
     <CurrencyProvider>
       <div className="h-screen bg-background flex flex-col overflow-hidden">
-        <DashboardHeader user={session.user} onMenuClick={handleToggle} />
+        <DashboardHeader
+          user={session.user}
+          onMenuClick={handleToggle}
+          onMobileMenuClick={handleMobileMenuToggle}
+        />
         <div className="flex flex-1 overflow-hidden">
           <DashboardSidebar isCollapsed={isCollapsed} onToggle={handleToggle} />
-          <main className="flex-1 overflow-y-auto p-6 lg:p-8">{children}</main>
+          <MobileSidebar isOpen={isMobileMenuOpen} onClose={handleMobileMenuClose} />
+          <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 lg:p-8">{children}</main>
         </div>
       </div>
     </CurrencyProvider>

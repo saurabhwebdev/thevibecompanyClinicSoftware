@@ -245,16 +245,16 @@ export default function InvoicesPage() {
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
-        className="flex items-center justify-between"
+        className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       >
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Invoices</h2>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Invoices</h2>
           <p className="text-sm text-muted-foreground">
             Manage and track all your invoices
           </p>
         </div>
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button onClick={() => router.push("/dashboard/billing")}>
+          <Button onClick={() => router.push("/dashboard/billing")} className="w-full sm:w-auto">
             <Plus className="h-4 w-4 mr-2" />
             New Invoice
           </Button>
@@ -266,7 +266,7 @@ export default function InvoicesPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.15 }}
-        className="grid gap-4 md:grid-cols-4"
+        className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4"
       >
         {[
           { title: "Total Invoices", value: pagination.total, icon: Receipt, color: "" },
@@ -296,9 +296,9 @@ export default function InvoicesPage() {
 
       {/* Filters */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-wrap gap-4">
-            <div className="flex-1 min-w-[200px]">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
+            <div className="flex-1 min-w-0 sm:min-w-[200px]">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -309,8 +309,9 @@ export default function InvoicesPage() {
                 />
               </div>
             </div>
+            <div className="flex gap-2 sm:gap-4">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="flex-1 sm:w-[150px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -323,7 +324,7 @@ export default function InvoicesPage() {
               </SelectContent>
             </Select>
             <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="flex-1 sm:w-[150px]">
                 <SelectValue placeholder="Payment" />
               </SelectTrigger>
               <SelectContent>
@@ -333,6 +334,7 @@ export default function InvoicesPage() {
                 <SelectItem value="paid">Paid</SelectItem>
               </SelectContent>
             </Select>
+            </div>
           </div>
         </CardContent>
       </Card>

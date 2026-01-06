@@ -19,6 +19,7 @@ import {
   Receipt,
   BarChart3,
   Mail,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +28,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -127,5 +134,47 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
         </div>
       </aside>
     </TooltipProvider>
+  );
+}
+
+// Mobile Sidebar Drawer
+interface MobileSidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
+  const pathname = usePathname();
+
+  return (
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent side="left" className="w-72 p-0">
+        <SheetHeader className="p-4 border-b">
+          <SheetTitle className="text-left text-primary">Menu</SheetTitle>
+        </SheetHeader>
+        <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto max-h-[calc(100vh-80px)]">
+          {navigation.map((item) => {
+            const isActive = pathname === item.href;
+
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                onClick={onClose}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <item.icon className="h-5 w-5 flex-shrink-0" />
+                <span>{item.name}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </SheetContent>
+    </Sheet>
   );
 }

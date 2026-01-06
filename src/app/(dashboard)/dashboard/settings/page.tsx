@@ -75,22 +75,26 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="appearance" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="appearance" className="gap-2">
-            <Palette className="h-4 w-4" />
-            Appearance
+        <TabsList className="flex flex-wrap h-auto gap-1 p-1">
+          <TabsTrigger value="appearance" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <Palette className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Appearance</span>
+            <span className="sm:hidden">Theme</span>
           </TabsTrigger>
-          <TabsTrigger value="tax" className="gap-2">
-            <Receipt className="h-4 w-4" />
-            Tax Configuration
+          <TabsTrigger value="tax" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <Receipt className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Tax Configuration</span>
+            <span className="sm:hidden">Tax</span>
           </TabsTrigger>
-          <TabsTrigger value="payments" className="gap-2">
-            <CreditCard className="h-4 w-4" />
-            Payments
+          <TabsTrigger value="payments" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <CreditCard className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Payments</span>
+            <span className="sm:hidden">Pay</span>
           </TabsTrigger>
-          <TabsTrigger value="public-booking" className="gap-2">
-            <Globe className="h-4 w-4" />
-            Public Booking
+          <TabsTrigger value="public-booking" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+            <Globe className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Public Booking</span>
+            <span className="sm:hidden">Booking</span>
           </TabsTrigger>
         </TabsList>
 
@@ -141,7 +145,7 @@ export default function SettingsPage() {
               <CardTitle className="text-base">Base Colors</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-6 gap-2">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
                 {baseThemes.map((themeKey) => (
                   <ColorSwatch key={themeKey} themeKey={themeKey} />
                 ))}
@@ -152,13 +156,13 @@ export default function SettingsPage() {
           {/* Pantone Colors */}
           <Card>
             <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                 <CardTitle className="text-base">Pantone Color of the Year</CardTitle>
                 <span className="text-xs text-muted-foreground">2005 - 2025</span>
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-7 sm:grid-cols-11 md:grid-cols-21 gap-2">
+              <div className="grid grid-cols-4 sm:grid-cols-7 md:grid-cols-11 lg:grid-cols-21 gap-2">
                 {pantoneThemes.map((themeKey) => (
                   <ColorSwatch key={themeKey} themeKey={themeKey} />
                 ))}
