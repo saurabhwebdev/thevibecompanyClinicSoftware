@@ -35,6 +35,11 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
+  // Guard against missing tenant data (session callback failed to fetch tenant)
+  if (!session.user?.tenant?.id) {
+    redirect("/login?error=SessionExpired");
+  }
+
   await dbConnect();
 
   const tenantId = session.user.tenant.id;

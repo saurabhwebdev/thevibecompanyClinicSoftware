@@ -22,10 +22,10 @@ interface DashboardHeaderProps {
     email: string;
     avatarStyle?: string;
     avatarSeed?: string;
-    role: {
+    role?: {
       name: string;
     };
-    tenant: {
+    tenant?: {
       name: string;
     };
   };
@@ -33,15 +33,15 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ user, onMenuClick }: DashboardHeaderProps) {
-  const initials = user.name
+  const initials = (user?.name || "U")
     .split(" ")
     .map((n) => n[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);
 
-  const avatarStyle = user.avatarStyle || "adventurer";
-  const avatarSeed = user.avatarSeed || user.email;
+  const avatarStyle = user?.avatarStyle || "adventurer";
+  const avatarSeed = user?.avatarSeed || user?.email || "user";
   const avatarUrl = `https://api.dicebear.com/7.x/${avatarStyle}/svg?seed=${encodeURIComponent(avatarSeed)}&backgroundColor=4D9DE0,17B890,E15554,F59E0B`;
 
   return (
@@ -60,7 +60,7 @@ export function DashboardHeader({ user, onMenuClick }: DashboardHeaderProps) {
             </Button>
           </div>
           <h1 className="text-xl font-bold text-primary px-4 lg:px-0">
-            {user.tenant.name}
+            {user?.tenant?.name || "Clinic"}
           </h1>
         </div>
 
@@ -70,7 +70,7 @@ export function DashboardHeader({ user, onMenuClick }: DashboardHeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage key={`header-${avatarStyle}-${avatarSeed}`} src={avatarUrl} alt={user.name} />
+                  <AvatarImage key={`header-${avatarStyle}-${avatarSeed}`} src={avatarUrl} alt={user?.name || "User"} />
                   <AvatarFallback className="bg-primary text-primary-foreground">
                     {initials}
                   </AvatarFallback>
@@ -80,12 +80,12 @@ export function DashboardHeader({ user, onMenuClick }: DashboardHeaderProps) {
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user.name}</p>
+                  <p className="text-sm font-medium leading-none">{user?.name || "User"}</p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    {user.email}
+                    {user?.email || ""}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground mt-1">
-                    {user.role.name}
+                    {user?.role?.name || ""}
                   </p>
                 </div>
               </DropdownMenuLabel>

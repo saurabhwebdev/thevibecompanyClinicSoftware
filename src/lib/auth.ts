@@ -168,6 +168,12 @@ export const authOptions: NextAuthOptions = {
       const role = await Role.findById(token.roleId);
       const tenant = await Tenant.findById(token.tenantId);
 
+      // If role or tenant not found, the session is invalid
+      // Return a minimal session that will trigger re-authentication
+      if (!role || !tenant) {
+        return session;
+      }
+
       // Fetch fresh avatar data using native MongoDB to bypass any caching
       let avatarStyle = "adventurer";
       let avatarSeed = session.user.email;
@@ -188,28 +194,26 @@ export const authOptions: NextAuthOptions = {
         // Silently handle error, use defaults
       }
 
-      if (role && tenant) {
-        session.user = {
-          id: token.id,
-          name: session.user.name,
-          email: session.user.email,
-          avatarStyle: avatarStyle,
-          avatarSeed: avatarSeed,
-          role: {
-            id: role._id.toString(),
-            name: role.name,
-            permissions: role.permissions.map((p) => ({
-              resource: p.resource,
-              actions: p.actions,
-            })),
-          },
-          tenant: {
-            id: tenant._id.toString(),
-            name: tenant.name,
-            slug: tenant.slug,
-          },
-        };
-      }
+      session.user = {
+        id: token.id,
+        name: session.user.name,
+        email: session.user.email,
+        avatarStyle: avatarStyle,
+        avatarSeed: avatarSeed,
+        role: {
+          id: role._id.toString(),
+          name: role.name,
+          permissions: role.permissions.map((p) => ({
+            resource: p.resource,
+            actions: p.actions,
+          })),
+        },
+        tenant: {
+          id: tenant._id.toString(),
+          name: tenant.name,
+          slug: tenant.slug,
+        },
+      };
 
       return session;
     },
