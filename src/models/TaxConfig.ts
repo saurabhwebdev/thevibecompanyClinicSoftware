@@ -292,7 +292,7 @@ const TaxConfigSchema: Schema<ITaxConfig> = new Schema(
     // Business Details
     registrationNumber: {
       type: String,
-      required: [true, "Tax registration number is required"],
+      default: "",
       uppercase: true,
       trim: true,
     },
@@ -307,37 +307,37 @@ const TaxConfigSchema: Schema<ITaxConfig> = new Schema(
     },
     businessType: {
       type: String,
-      required: true,
+      default: "proprietorship",
     },
 
     // Address
     address: {
-      line1: { type: String, required: true },
-      line2: { type: String },
-      city: { type: String, required: true },
-      state: { type: String, required: true },
-      stateCode: { type: String, required: true },
-      postalCode: { type: String, required: true },
-      country: { type: String, required: true },
+      line1: { type: String, default: "" },
+      line2: { type: String, default: "" },
+      city: { type: String, default: "" },
+      state: { type: String, default: "" },
+      stateCode: { type: String, default: "" },
+      postalCode: { type: String, default: "" },
+      country: { type: String, default: "India" },
     },
 
     // Contact
     email: {
       type: String,
-      required: true,
+      default: "",
       lowercase: true,
       trim: true,
     },
     phone: {
       type: String,
-      required: true,
+      default: "",
       trim: true,
     },
 
     // Tax Settings
     registrationType: {
       type: String,
-      required: true,
+      default: "regular",
     },
     defaultTaxRate: {
       type: Number,
