@@ -16,6 +16,10 @@ import {
   Info,
   Globe,
   Receipt,
+  PenTool,
+  Upload,
+  X,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,6 +108,25 @@ interface TaxFormData {
       swiftCode: string;
     };
   };
+  prescriptionSettings: {
+    doctorSignature: string;
+  };
+  emailSettings: {
+    patientWelcomeEmail: boolean;
+    prescriptionEmail: boolean;
+    medicalRecordEmail: boolean;
+    appointmentConfirmationEmail: boolean;
+    appointmentReminderEmail: boolean;
+    appointmentCancellationEmail: boolean;
+    appointmentRescheduleEmail: boolean;
+    userWelcomeEmail: boolean;
+    passwordResetEmail: boolean;
+    passwordChangedEmail: boolean;
+    lowStockAlertEmail: boolean;
+    expiryAlertEmail: boolean;
+    purchaseOrderEmail: boolean;
+    stockReceivedEmail: boolean;
+  };
   digitalCompliance: {
     enabled: boolean;
     systemType: string;
@@ -159,6 +182,25 @@ const getDefaultFormData = (countryConfig: CountryTaxConfig): TaxFormData => ({
       accountType: "current",
       swiftCode: "",
     },
+  },
+  prescriptionSettings: {
+    doctorSignature: "",
+  },
+  emailSettings: {
+    patientWelcomeEmail: true,
+    prescriptionEmail: true,
+    medicalRecordEmail: true,
+    appointmentConfirmationEmail: true,
+    appointmentReminderEmail: true,
+    appointmentCancellationEmail: true,
+    appointmentRescheduleEmail: true,
+    userWelcomeEmail: true,
+    passwordResetEmail: true,
+    passwordChangedEmail: true,
+    lowStockAlertEmail: true,
+    expiryAlertEmail: true,
+    purchaseOrderEmail: true,
+    stockReceivedEmail: true,
   },
   digitalCompliance: {
     enabled: false,
@@ -971,6 +1013,338 @@ export function TaxConfigForm() {
                     {...register("invoiceSettings.bankDetails.swiftCode")}
                     className="uppercase"
                   />
+                </div>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Prescription Settings */}
+        <AccordionItem value="prescription" className="border rounded-lg px-4">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-2">
+              <PenTool className="h-4 w-4" />
+              <span>Prescription Settings</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pt-4">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="doctorSignature">Doctor Signature</Label>
+                <div className="space-y-4">
+                  {watch("prescriptionSettings.doctorSignature") ? (
+                    <div className="relative inline-block">
+                      <img
+                        src={watch("prescriptionSettings.doctorSignature")}
+                        alt="Doctor signature"
+                        className="max-w-xs h-24 border border-border rounded-lg object-contain bg-white"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                        onClick={() => setValue("prescriptionSettings.doctorSignature", "")}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="signatureUpload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            // Check file size (max 2MB)
+                            if (file.size > 2 * 1024 * 1024) {
+                              toast.error("Image size should be less than 2MB");
+                              return;
+                            }
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                              setValue("prescriptionSettings.doctorSignature", reader.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                      <Label
+                        htmlFor="signatureUpload"
+                        className="flex items-center gap-2 cursor-pointer px-4 py-2 border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-md transition-colors"
+                      >
+                        <Upload className="h-4 w-4" />
+                        Upload Signature
+                      </Label>
+                    </div>
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    Upload an image of the doctor&apos;s signature to be displayed on prescriptions. Max size: 2MB. Recommended size: 300x100 pixels.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Email Notification Settings */}
+        <AccordionItem value="email" className="border rounded-lg px-4">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              <span>Email Notification Settings</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="pt-4">
+            <div className="space-y-6">
+              {/* Patient-related Emails */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-sm">Patient-Related Emails</h4>
+                <div className="space-y-3 pl-4 border-l-2 border-muted">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="patientWelcomeEmail">Patient Welcome Email</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Send welcome email when a new patient is registered
+                      </p>
+                    </div>
+                    <Switch
+                      id="patientWelcomeEmail"
+                      checked={watch("emailSettings.patientWelcomeEmail")}
+                      onCheckedChange={(checked) =>
+                        setValue("emailSettings.patientWelcomeEmail", checked)
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="prescriptionEmail">Prescription Email</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Send prescription details to patient via email
+                      </p>
+                    </div>
+                    <Switch
+                      id="prescriptionEmail"
+                      checked={watch("emailSettings.prescriptionEmail")}
+                      onCheckedChange={(checked) =>
+                        setValue("emailSettings.prescriptionEmail", checked)
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="medicalRecordEmail">Medical Record Email</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Send visit summary and medical record to patient
+                      </p>
+                    </div>
+                    <Switch
+                      id="medicalRecordEmail"
+                      checked={watch("emailSettings.medicalRecordEmail")}
+                      onCheckedChange={(checked) =>
+                        setValue("emailSettings.medicalRecordEmail", checked)
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Appointment-related Emails */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-sm">Appointment-Related Emails</h4>
+                <div className="space-y-3 pl-4 border-l-2 border-muted">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="appointmentConfirmationEmail">Appointment Confirmation</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Send confirmation when appointment is booked
+                      </p>
+                    </div>
+                    <Switch
+                      id="appointmentConfirmationEmail"
+                      checked={watch("emailSettings.appointmentConfirmationEmail")}
+                      onCheckedChange={(checked) =>
+                        setValue("emailSettings.appointmentConfirmationEmail", checked)
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="appointmentReminderEmail">Appointment Reminder</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Send reminder before scheduled appointment
+                      </p>
+                    </div>
+                    <Switch
+                      id="appointmentReminderEmail"
+                      checked={watch("emailSettings.appointmentReminderEmail")}
+                      onCheckedChange={(checked) =>
+                        setValue("emailSettings.appointmentReminderEmail", checked)
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="appointmentCancellationEmail">Appointment Cancellation</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Send notification when appointment is cancelled
+                      </p>
+                    </div>
+                    <Switch
+                      id="appointmentCancellationEmail"
+                      checked={watch("emailSettings.appointmentCancellationEmail")}
+                      onCheckedChange={(checked) =>
+                        setValue("emailSettings.appointmentCancellationEmail", checked)
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="appointmentRescheduleEmail">Appointment Reschedule</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Send notification when appointment is rescheduled
+                      </p>
+                    </div>
+                    <Switch
+                      id="appointmentRescheduleEmail"
+                      checked={watch("emailSettings.appointmentRescheduleEmail")}
+                      onCheckedChange={(checked) =>
+                        setValue("emailSettings.appointmentRescheduleEmail", checked)
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* User/Auth-related Emails */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-sm">User Account Emails</h4>
+                <div className="space-y-3 pl-4 border-l-2 border-muted">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="userWelcomeEmail">User Welcome Email</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Send welcome email when new user registers
+                      </p>
+                    </div>
+                    <Switch
+                      id="userWelcomeEmail"
+                      checked={watch("emailSettings.userWelcomeEmail")}
+                      onCheckedChange={(checked) =>
+                        setValue("emailSettings.userWelcomeEmail", checked)
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="passwordResetEmail">Password Reset Email</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Send password reset link to users
+                      </p>
+                    </div>
+                    <Switch
+                      id="passwordResetEmail"
+                      checked={watch("emailSettings.passwordResetEmail")}
+                      onCheckedChange={(checked) =>
+                        setValue("emailSettings.passwordResetEmail", checked)
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="passwordChangedEmail">Password Changed Email</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Send confirmation when password is changed
+                      </p>
+                    </div>
+                    <Switch
+                      id="passwordChangedEmail"
+                      checked={watch("emailSettings.passwordChangedEmail")}
+                      onCheckedChange={(checked) =>
+                        setValue("emailSettings.passwordChangedEmail", checked)
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Inventory-related Emails */}
+              <div className="space-y-4">
+                <h4 className="font-medium text-sm">Inventory & Stock Emails</h4>
+                <div className="space-y-3 pl-4 border-l-2 border-muted">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="lowStockAlertEmail">Low Stock Alert</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Send alert when product stock is low
+                      </p>
+                    </div>
+                    <Switch
+                      id="lowStockAlertEmail"
+                      checked={watch("emailSettings.lowStockAlertEmail")}
+                      onCheckedChange={(checked) =>
+                        setValue("emailSettings.lowStockAlertEmail", checked)
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="expiryAlertEmail">Product Expiry Alert</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Send alert for products nearing expiry
+                      </p>
+                    </div>
+                    <Switch
+                      id="expiryAlertEmail"
+                      checked={watch("emailSettings.expiryAlertEmail")}
+                      onCheckedChange={(checked) =>
+                        setValue("emailSettings.expiryAlertEmail", checked)
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="purchaseOrderEmail">Purchase Order Email</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Send purchase orders to suppliers
+                      </p>
+                    </div>
+                    <Switch
+                      id="purchaseOrderEmail"
+                      checked={watch("emailSettings.purchaseOrderEmail")}
+                      onCheckedChange={(checked) =>
+                        setValue("emailSettings.purchaseOrderEmail", checked)
+                      }
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="stockReceivedEmail">Stock Received Email</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Send confirmation when stock is received
+                      </p>
+                    </div>
+                    <Switch
+                      id="stockReceivedEmail"
+                      checked={watch("emailSettings.stockReceivedEmail")}
+                      onCheckedChange={(checked) =>
+                        setValue("emailSettings.stockReceivedEmail", checked)
+                      }
+                    />
+                  </div>
                 </div>
               </div>
             </div>

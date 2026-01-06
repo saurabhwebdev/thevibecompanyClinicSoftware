@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import dbConnect from "@/lib/db/mongoose";
 import { User, Tenant } from "@/models";
-import { sendPasswordResetEmail } from "@/lib/email";
+import { sendPasswordResetEmail, isEmailEnabled } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -54,9 +54,13 @@ export async function POST(request: NextRequest) {
     user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
     await user.save();
 
-    // Send password reset email
-    sendPasswordResetEmail(user.email, resetToken, tenantSlug).catch((err) => {
-      console.error("Failed to send password reset email:", err);
+    // Send password reset email if enabled
+    isEmailEnabled(tenant._id.toString(), "passwordResetEmail").then((emailEnabled) => {
+      if (emailEnabled) {
+        sendPasswordResetEmail(user.email, resetToken, tenantSlug).catch((err) => {
+          console.error("Failed to send password reset email:", err);
+        });
+      }
     });
 
     // Log token in development for testing

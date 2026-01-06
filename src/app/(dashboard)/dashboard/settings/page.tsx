@@ -1,7 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { Moon, Sun, Monitor, Check, Palette, Receipt } from "lucide-react";
+import { Moon, Sun, Monitor, Check, Palette, Receipt, CreditCard, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,6 +19,8 @@ import {
   ColorTheme,
 } from "@/components/color-theme-provider";
 import { TaxConfigForm } from "@/components/settings/tax-config-form";
+import { PaymentSettingsForm } from "@/components/settings/payment-settings-form";
+import { PublicBookingSettingsForm } from "@/components/settings/public-booking-settings-form";
 import { cn } from "@/lib/utils";
 
 export default function SettingsPage() {
@@ -81,6 +83,14 @@ export default function SettingsPage() {
           <TabsTrigger value="tax" className="gap-2">
             <Receipt className="h-4 w-4" />
             Tax Configuration
+          </TabsTrigger>
+          <TabsTrigger value="payments" className="gap-2">
+            <CreditCard className="h-4 w-4" />
+            Payments
+          </TabsTrigger>
+          <TabsTrigger value="public-booking" className="gap-2">
+            <Globe className="h-4 w-4" />
+            Public Booking
           </TabsTrigger>
         </TabsList>
 
@@ -167,6 +177,14 @@ export default function SettingsPage() {
 
         <TabsContent value="tax">
           <TaxConfigForm />
+        </TabsContent>
+
+        <TabsContent value="payments">
+          <PaymentSettingsForm />
+        </TabsContent>
+
+        <TabsContent value="public-booking">
+          <PublicBookingSettingsForm />
         </TabsContent>
       </Tabs>
     </div>

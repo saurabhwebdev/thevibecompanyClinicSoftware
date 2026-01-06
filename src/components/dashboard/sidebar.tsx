@@ -6,12 +6,19 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Users,
+  UserRound,
   CalendarDays,
   FileText,
   Settings,
   Shield,
   ChevronLeft,
   ChevronRight,
+  Package,
+  Truck,
+  ShoppingCart,
+  Receipt,
+  BarChart3,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,9 +30,14 @@ import {
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Patients", href: "/dashboard/patients", icon: Users },
+  { name: "Patients", href: "/dashboard/patients", icon: UserRound },
   { name: "Appointments", href: "/dashboard/appointments", icon: CalendarDays },
-  { name: "Reports", href: "/dashboard/reports", icon: FileText },
+  { name: "Billing (POS)", href: "/dashboard/billing", icon: ShoppingCart },
+  { name: "Invoices", href: "/dashboard/invoices", icon: Receipt },
+  { name: "Inventory", href: "/dashboard/inventory", icon: Package },
+  { name: "Suppliers", href: "/dashboard/suppliers", icon: Truck },
+  { name: "Reports", href: "/dashboard/reports", icon: BarChart3 },
+  { name: "Communications", href: "/dashboard/communications", icon: Mail },
   { name: "Users", href: "/dashboard/users", icon: Users },
   { name: "Roles", href: "/dashboard/roles", icon: Shield },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
@@ -43,7 +55,7 @@ export function DashboardSidebar({ isCollapsed, onToggle }: DashboardSidebarProp
     <TooltipProvider delayDuration={0}>
       <aside
         className={cn(
-          "hidden lg:flex lg:flex-col lg:border-r bg-card min-h-[calc(100vh-4rem)] relative transition-all duration-300 ease-in-out",
+          "hidden lg:flex lg:flex-col lg:border-r bg-card relative transition-all duration-300 ease-in-out flex-shrink-0",
           isCollapsed ? "lg:w-16" : "lg:w-64"
         )}
       >

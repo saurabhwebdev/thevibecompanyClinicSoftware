@@ -156,4 +156,77 @@ export const indiaConfig: CountryTaxConfig = {
   },
 
   defaultFinancialYearStart: { month: 4, day: 1 }, // April 1
+
+  // Payment Configuration for India
+  paymentConfig: {
+    defaultCurrency: "INR",
+    gateways: [
+      {
+        id: "razorpay",
+        name: "Razorpay",
+        description: "India's leading payment gateway with UPI, cards, net banking, and wallets",
+        logo: "/images/payments/razorpay.svg",
+        website: "https://razorpay.com",
+        features: ["UPI", "Cards", "Net Banking", "Wallets", "EMI", "Pay Later"],
+        supportedCurrencies: ["INR"],
+        settingsFields: [
+          { name: "keyId", label: "API Key ID", type: "text", required: true, placeholder: "rzp_live_xxxxx", helpText: "Your Razorpay API Key ID" },
+          { name: "keySecret", label: "API Key Secret", type: "password", required: true, helpText: "Your Razorpay API Key Secret" },
+          { name: "webhookSecret", label: "Webhook Secret", type: "password", required: false, helpText: "For verifying webhook signatures" },
+          { name: "sandbox", label: "Test Mode", type: "switch", helpText: "Enable for testing with test credentials" },
+        ],
+      },
+      {
+        id: "payu",
+        name: "PayU",
+        description: "Comprehensive payment solution with multiple payment options",
+        logo: "/images/payments/payu.svg",
+        website: "https://payu.in",
+        features: ["Cards", "Net Banking", "UPI", "Wallets", "EMI"],
+        supportedCurrencies: ["INR"],
+        settingsFields: [
+          { name: "merchantKey", label: "Merchant Key", type: "text", required: true, placeholder: "Your merchant key" },
+          { name: "merchantSalt", label: "Merchant Salt", type: "password", required: true, helpText: "Your merchant salt for hash generation" },
+          { name: "sandbox", label: "Test Mode", type: "switch", helpText: "Enable for testing" },
+        ],
+      },
+    ],
+    localMethods: [
+      {
+        id: "cash",
+        name: "Cash",
+        icon: "Banknote",
+        description: "Cash payment",
+        requiresTransactionId: false,
+      },
+      {
+        id: "card",
+        name: "Card",
+        icon: "CreditCard",
+        description: "Credit/Debit card payment",
+        requiresTransactionId: true,
+        transactionIdLabel: "Transaction ID",
+        transactionIdPlaceholder: "Enter card transaction ID",
+      },
+      {
+        id: "upi",
+        name: "UPI",
+        icon: "Smartphone",
+        description: "Unified Payments Interface",
+        requiresTransactionId: true,
+        transactionIdLabel: "UPI Transaction ID",
+        transactionIdPlaceholder: "Enter UPI reference number",
+      },
+      {
+        id: "netbanking",
+        name: "Net Banking",
+        icon: "Building",
+        description: "Direct bank transfer",
+        requiresTransactionId: true,
+        transactionIdLabel: "Transaction Reference",
+        transactionIdPlaceholder: "Enter bank reference number",
+      },
+    ],
+    posPaymentMethods: ["cash", "card", "upi"],
+  },
 };

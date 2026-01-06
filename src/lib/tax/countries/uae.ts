@@ -111,4 +111,93 @@ export const uaeConfig: CountryTaxConfig = {
   },
 
   defaultFinancialYearStart: { month: 1, day: 1 }, // January 1 (Gregorian) or can be custom
+
+  // Payment Configuration for UAE
+  paymentConfig: {
+    defaultCurrency: "AED",
+    gateways: [
+      {
+        id: "stripe",
+        name: "Stripe",
+        description: "Global payment platform with cards, Apple Pay, and Google Pay",
+        logo: "/images/payments/stripe.svg",
+        website: "https://stripe.com",
+        features: ["Cards", "Apple Pay", "Google Pay", "Link", "SEPA"],
+        supportedCurrencies: ["AED", "USD", "EUR", "GBP"],
+        settingsFields: [
+          { name: "publishableKey", label: "Publishable Key", type: "text", required: true, placeholder: "pk_live_xxxxx", helpText: "Your Stripe publishable key" },
+          { name: "secretKey", label: "Secret Key", type: "password", required: true, helpText: "Your Stripe secret key" },
+          { name: "webhookSecret", label: "Webhook Secret", type: "password", required: false, helpText: "For verifying webhook signatures" },
+          { name: "sandbox", label: "Test Mode", type: "switch", helpText: "Enable for testing with test credentials" },
+        ],
+      },
+      {
+        id: "network",
+        name: "Network International",
+        description: "Leading payment solutions provider in the Middle East and Africa",
+        logo: "/images/payments/network.svg",
+        website: "https://www.network.ae",
+        features: ["Cards", "Apple Pay", "Samsung Pay", "Installments"],
+        supportedCurrencies: ["AED", "USD", "SAR", "BHD", "OMR", "QAR", "KWD"],
+        settingsFields: [
+          { name: "merchantId", label: "Merchant ID", type: "text", required: true, placeholder: "Your merchant ID" },
+          { name: "apiKey", label: "API Key", type: "password", required: true, helpText: "Your Network API key" },
+          { name: "outletId", label: "Outlet ID", type: "text", required: true, helpText: "Your outlet reference" },
+          { name: "sandbox", label: "Test Mode", type: "switch", helpText: "Enable for testing" },
+        ],
+      },
+      {
+        id: "paytabs",
+        name: "PayTabs",
+        description: "Payment gateway popular in MENA region",
+        logo: "/images/payments/paytabs.svg",
+        website: "https://www.paytabs.com",
+        features: ["Cards", "Apple Pay", "mada", "SADAD", "Installments"],
+        supportedCurrencies: ["AED", "SAR", "USD", "EGP", "BHD", "OMR"],
+        settingsFields: [
+          { name: "profileId", label: "Profile ID", type: "text", required: true, placeholder: "Your profile ID" },
+          { name: "serverKey", label: "Server Key", type: "password", required: true, helpText: "Your PayTabs server key" },
+          { name: "clientKey", label: "Client Key", type: "text", required: true, helpText: "Your PayTabs client key" },
+          { name: "sandbox", label: "Test Mode", type: "switch", helpText: "Enable for testing" },
+        ],
+      },
+    ],
+    localMethods: [
+      {
+        id: "cash",
+        name: "Cash",
+        icon: "Banknote",
+        description: "Cash payment",
+        requiresTransactionId: false,
+      },
+      {
+        id: "card",
+        name: "Card",
+        icon: "CreditCard",
+        description: "Credit/Debit card payment",
+        requiresTransactionId: true,
+        transactionIdLabel: "Transaction ID",
+        transactionIdPlaceholder: "Enter card transaction ID",
+      },
+      {
+        id: "bank_transfer",
+        name: "Bank Transfer",
+        icon: "Building",
+        description: "Direct bank transfer",
+        requiresTransactionId: true,
+        transactionIdLabel: "Transfer Reference",
+        transactionIdPlaceholder: "Enter bank transfer reference",
+      },
+      {
+        id: "apple_pay",
+        name: "Apple Pay",
+        icon: "Smartphone",
+        description: "Apple Pay contactless payment",
+        requiresTransactionId: true,
+        transactionIdLabel: "Transaction ID",
+        transactionIdPlaceholder: "Enter Apple Pay transaction ID",
+      },
+    ],
+    posPaymentMethods: ["cash", "card", "bank_transfer"],
+  },
 };

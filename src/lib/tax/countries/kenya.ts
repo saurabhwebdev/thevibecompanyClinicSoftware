@@ -168,4 +168,103 @@ export const kenyaConfig: CountryTaxConfig = {
   },
 
   defaultFinancialYearStart: { month: 1, day: 1 }, // Calendar year (or July 1 for some)
+
+  // Payment Configuration for Kenya
+  paymentConfig: {
+    defaultCurrency: "KES",
+    gateways: [
+      {
+        id: "mpesa",
+        name: "M-Pesa (Safaricom)",
+        description: "Kenya's most popular mobile money platform",
+        logo: "/images/payments/mpesa.svg",
+        website: "https://developer.safaricom.co.ke",
+        features: ["STK Push", "C2B", "B2C", "B2B"],
+        supportedCurrencies: ["KES"],
+        settingsFields: [
+          { name: "consumerKey", label: "Consumer Key", type: "text", required: true, placeholder: "Your consumer key", helpText: "From Safaricom Developer Portal" },
+          { name: "consumerSecret", label: "Consumer Secret", type: "password", required: true, helpText: "Your consumer secret" },
+          { name: "shortcode", label: "Business Shortcode", type: "text", required: true, placeholder: "174379", helpText: "Your Paybill or Till number" },
+          { name: "passkey", label: "Passkey", type: "password", required: true, helpText: "Your Lipa Na M-Pesa passkey" },
+          { name: "callbackUrl", label: "Callback URL", type: "text", required: true, placeholder: "https://your-domain.com/api/mpesa/callback", helpText: "URL for payment notifications" },
+          { name: "sandbox", label: "Sandbox Mode", type: "switch", helpText: "Enable for testing with sandbox credentials" },
+        ],
+      },
+      {
+        id: "flutterwave",
+        name: "Flutterwave",
+        description: "Pan-African payment gateway with M-Pesa, cards, and mobile money",
+        logo: "/images/payments/flutterwave.svg",
+        website: "https://flutterwave.com",
+        features: ["M-Pesa", "Cards", "Mobile Money", "Bank Transfer", "USSD"],
+        supportedCurrencies: ["KES", "USD", "NGN", "GHS", "UGX", "TZS", "ZAR"],
+        settingsFields: [
+          { name: "publicKey", label: "Public Key", type: "text", required: true, placeholder: "FLWPUBK-xxxxx", helpText: "Your Flutterwave public key" },
+          { name: "secretKey", label: "Secret Key", type: "password", required: true, helpText: "Your Flutterwave secret key" },
+          { name: "encryptionKey", label: "Encryption Key", type: "password", required: true, helpText: "Your Flutterwave encryption key" },
+          { name: "sandbox", label: "Test Mode", type: "switch", helpText: "Enable for testing" },
+        ],
+      },
+      {
+        id: "pesapal",
+        name: "Pesapal",
+        description: "East African payment gateway with multiple payment options",
+        logo: "/images/payments/pesapal.svg",
+        website: "https://www.pesapal.com",
+        features: ["M-Pesa", "Airtel Money", "Cards", "Bank Transfer"],
+        supportedCurrencies: ["KES", "UGX", "TZS", "USD"],
+        settingsFields: [
+          { name: "consumerKey", label: "Consumer Key", type: "text", required: true, placeholder: "Your consumer key" },
+          { name: "consumerSecret", label: "Consumer Secret", type: "password", required: true, helpText: "Your consumer secret" },
+          { name: "sandbox", label: "Test Mode", type: "switch", helpText: "Enable for testing" },
+        ],
+      },
+    ],
+    localMethods: [
+      {
+        id: "cash",
+        name: "Cash",
+        icon: "Banknote",
+        description: "Cash payment",
+        requiresTransactionId: false,
+      },
+      {
+        id: "card",
+        name: "Card",
+        icon: "CreditCard",
+        description: "Credit/Debit card payment",
+        requiresTransactionId: true,
+        transactionIdLabel: "Transaction ID",
+        transactionIdPlaceholder: "Enter card transaction ID",
+      },
+      {
+        id: "mpesa",
+        name: "M-Pesa",
+        icon: "Smartphone",
+        description: "Safaricom M-Pesa mobile money",
+        requiresTransactionId: true,
+        transactionIdLabel: "M-Pesa Code",
+        transactionIdPlaceholder: "e.g., QJK2ABCDEF",
+      },
+      {
+        id: "airtel_money",
+        name: "Airtel Money",
+        icon: "Phone",
+        description: "Airtel mobile money",
+        requiresTransactionId: true,
+        transactionIdLabel: "Transaction ID",
+        transactionIdPlaceholder: "Enter Airtel Money transaction ID",
+      },
+      {
+        id: "bank_transfer",
+        name: "Bank Transfer",
+        icon: "Building",
+        description: "Direct bank transfer (Equity, KCB, Co-op, etc.)",
+        requiresTransactionId: true,
+        transactionIdLabel: "Transfer Reference",
+        transactionIdPlaceholder: "Enter bank transfer reference",
+      },
+    ],
+    posPaymentMethods: ["cash", "card", "mpesa"],
+  },
 };

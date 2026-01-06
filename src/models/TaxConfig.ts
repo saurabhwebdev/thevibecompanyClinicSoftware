@@ -16,6 +16,119 @@ export interface ITaxCode {
   category: string;
 }
 
+export interface IUPISettings {
+  enabled: boolean;
+  vpa: string; // Virtual Payment Address (UPI ID)
+  merchantName: string;
+  merchantCode?: string;
+  showQROnInvoice: boolean;
+}
+
+export interface IRazorpaySettings {
+  enabled: boolean;
+  keyId: string;
+  keySecret: string;
+  webhookSecret?: string;
+  accountId?: string;
+  sandbox: boolean;
+  autoCapture: boolean;
+  paymentMethods: {
+    card: boolean;
+    upi: boolean;
+    netbanking: boolean;
+    wallet: boolean;
+    emi: boolean;
+  };
+}
+
+// Stripe Settings (UAE, Global)
+export interface IStripeSettings {
+  enabled: boolean;
+  publishableKey: string;
+  secretKey: string;
+  webhookSecret?: string;
+  sandbox: boolean;
+}
+
+// PayU Settings (India)
+export interface IPayUSettings {
+  enabled: boolean;
+  merchantKey: string;
+  merchantSalt: string;
+  sandbox: boolean;
+}
+
+// Network International Settings (UAE)
+export interface INetworkSettings {
+  enabled: boolean;
+  merchantId: string;
+  apiKey: string;
+  outletId: string;
+  sandbox: boolean;
+}
+
+// PayTabs Settings (UAE, MENA)
+export interface IPayTabsSettings {
+  enabled: boolean;
+  profileId: string;
+  serverKey: string;
+  clientKey: string;
+  sandbox: boolean;
+}
+
+// PayMongo Settings (Philippines)
+export interface IPayMongoSettings {
+  enabled: boolean;
+  publicKey: string;
+  secretKey: string;
+  webhookSecret?: string;
+  sandbox: boolean;
+}
+
+// Dragonpay Settings (Philippines)
+export interface IDragonpaySettings {
+  enabled: boolean;
+  merchantId: string;
+  password: string;
+  sandbox: boolean;
+}
+
+// M-Pesa Settings (Kenya)
+export interface IMPesaSettings {
+  enabled: boolean;
+  consumerKey: string;
+  consumerSecret: string;
+  shortcode: string;
+  passkey: string;
+  callbackUrl: string;
+  sandbox: boolean;
+}
+
+// Flutterwave Settings (Africa)
+export interface IFlutterwaveSettings {
+  enabled: boolean;
+  publicKey: string;
+  secretKey: string;
+  encryptionKey: string;
+  sandbox: boolean;
+}
+
+// Pesapal Settings (East Africa)
+export interface IPesapalSettings {
+  enabled: boolean;
+  consumerKey: string;
+  consumerSecret: string;
+  sandbox: boolean;
+}
+
+// Generic gateway settings storage
+export interface IGatewaySettings {
+  [gatewayId: string]: {
+    enabled: boolean;
+    [key: string]: unknown;
+  };
+}
+
 export interface ITaxConfig extends Document {
   tenantId: mongoose.Types.ObjectId;
 
@@ -69,6 +182,45 @@ export interface ITaxConfig extends Document {
       swiftCode?: string;
     };
   };
+
+  // Prescription Settings
+  prescriptionSettings: {
+    doctorSignature?: string; // Base64 encoded image or URL
+  };
+
+  // Email Notification Settings
+  emailSettings: {
+    // Patient-related emails
+    patientWelcomeEmail: boolean;
+    prescriptionEmail: boolean;
+    medicalRecordEmail: boolean;
+
+    // Appointment-related emails
+    appointmentConfirmationEmail: boolean;
+    appointmentReminderEmail: boolean;
+    appointmentCancellationEmail: boolean;
+    appointmentRescheduleEmail: boolean;
+
+    // User/Auth-related emails
+    userWelcomeEmail: boolean;
+    passwordResetEmail: boolean;
+    passwordChangedEmail: boolean;
+
+    // Inventory-related emails
+    lowStockAlertEmail: boolean;
+    expiryAlertEmail: boolean;
+    purchaseOrderEmail: boolean;
+    stockReceivedEmail: boolean;
+  };
+
+  // UPI Payment Settings
+  upiSettings: IUPISettings;
+
+  // Razorpay Settings
+  razorpaySettings: IRazorpaySettings;
+
+  // Payment Gateway Settings (dynamic based on country)
+  gatewaySettings: IGatewaySettings;
 
   // E-Invoice/Digital Compliance Settings
   digitalCompliance: {
@@ -217,6 +369,69 @@ const TaxConfigSchema: Schema<ITaxConfig> = new Schema(
         accountType: { type: String, default: "current" },
         swiftCode: { type: String },
       },
+    },
+
+    // Prescription Settings
+    prescriptionSettings: {
+      doctorSignature: { type: String }, // Base64 or URL
+    },
+
+    // Email Notification Settings
+    emailSettings: {
+      // Patient-related emails
+      patientWelcomeEmail: { type: Boolean, default: true },
+      prescriptionEmail: { type: Boolean, default: true },
+      medicalRecordEmail: { type: Boolean, default: true },
+
+      // Appointment-related emails
+      appointmentConfirmationEmail: { type: Boolean, default: true },
+      appointmentReminderEmail: { type: Boolean, default: true },
+      appointmentCancellationEmail: { type: Boolean, default: true },
+      appointmentRescheduleEmail: { type: Boolean, default: true },
+
+      // User/Auth-related emails
+      userWelcomeEmail: { type: Boolean, default: true },
+      passwordResetEmail: { type: Boolean, default: true },
+      passwordChangedEmail: { type: Boolean, default: true },
+
+      // Inventory-related emails
+      lowStockAlertEmail: { type: Boolean, default: true },
+      expiryAlertEmail: { type: Boolean, default: true },
+      purchaseOrderEmail: { type: Boolean, default: true },
+      stockReceivedEmail: { type: Boolean, default: true },
+    },
+
+    // UPI Settings
+    upiSettings: {
+      enabled: { type: Boolean, default: false },
+      vpa: { type: String, default: "" },
+      merchantName: { type: String, default: "" },
+      merchantCode: { type: String },
+      showQROnInvoice: { type: Boolean, default: true },
+    },
+
+    // Razorpay Settings
+    razorpaySettings: {
+      enabled: { type: Boolean, default: false },
+      keyId: { type: String, default: "" },
+      keySecret: { type: String, default: "" },
+      webhookSecret: { type: String },
+      accountId: { type: String },
+      sandbox: { type: Boolean, default: true },
+      autoCapture: { type: Boolean, default: true },
+      paymentMethods: {
+        card: { type: Boolean, default: true },
+        upi: { type: Boolean, default: true },
+        netbanking: { type: Boolean, default: true },
+        wallet: { type: Boolean, default: true },
+        emi: { type: Boolean, default: false },
+      },
+    },
+
+    // Generic Payment Gateway Settings (stores all gateway configs dynamically)
+    gatewaySettings: {
+      type: Schema.Types.Mixed,
+      default: {},
     },
 
     // Digital Compliance

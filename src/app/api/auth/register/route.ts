@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import dbConnect from "@/lib/db/mongoose";
 import { User, Tenant, Role } from "@/models";
-import { sendWelcomeEmail } from "@/lib/email";
+import { sendWelcomeEmail, isEmailEnabled } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
@@ -232,9 +232,13 @@ export async function POST(request: NextRequest) {
       emailVerified: false,
     });
 
-    // Send welcome email (non-blocking)
-    sendWelcomeEmail(user.email, user.name, tenant.name).catch((err) => {
-      console.error("Failed to send welcome email:", err);
+    // Send welcome email (non-blocking) if enabled
+    isEmailEnabled(tenant._id.toString(), "userWelcomeEmail").then((emailEnabled) => {
+      if (emailEnabled) {
+        sendWelcomeEmail(user.email, user.name, tenant.name).catch((err) => {
+          console.error("Failed to send welcome email:", err);
+        });
+      }
     });
 
     return NextResponse.json(

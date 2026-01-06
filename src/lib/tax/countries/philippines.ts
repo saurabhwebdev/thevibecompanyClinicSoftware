@@ -141,4 +141,86 @@ export const philippinesConfig: CountryTaxConfig = {
   },
 
   defaultFinancialYearStart: { month: 1, day: 1 }, // Calendar year
+
+  // Payment Configuration for Philippines
+  paymentConfig: {
+    defaultCurrency: "PHP",
+    gateways: [
+      {
+        id: "paymongo",
+        name: "PayMongo",
+        description: "Philippines' leading payment platform with GCash, Maya, and cards",
+        logo: "/images/payments/paymongo.svg",
+        website: "https://www.paymongo.com",
+        features: ["Cards", "GCash", "Maya", "GrabPay", "BPI", "UnionBank"],
+        supportedCurrencies: ["PHP"],
+        settingsFields: [
+          { name: "publicKey", label: "Public Key", type: "text", required: true, placeholder: "pk_live_xxxxx", helpText: "Your PayMongo public key" },
+          { name: "secretKey", label: "Secret Key", type: "password", required: true, helpText: "Your PayMongo secret key" },
+          { name: "webhookSecret", label: "Webhook Secret", type: "password", required: false, helpText: "For verifying webhook signatures" },
+          { name: "sandbox", label: "Test Mode", type: "switch", helpText: "Enable for testing with test credentials" },
+        ],
+      },
+      {
+        id: "dragonpay",
+        name: "Dragonpay",
+        description: "Multi-channel payment platform for the Philippines",
+        logo: "/images/payments/dragonpay.svg",
+        website: "https://www.dragonpay.ph",
+        features: ["Online Banking", "OTC Banking", "E-Wallets", "Payment Centers"],
+        supportedCurrencies: ["PHP"],
+        settingsFields: [
+          { name: "merchantId", label: "Merchant ID", type: "text", required: true, placeholder: "Your merchant ID" },
+          { name: "password", label: "Password", type: "password", required: true, helpText: "Your Dragonpay password" },
+          { name: "sandbox", label: "Test Mode", type: "switch", helpText: "Enable for testing" },
+        ],
+      },
+    ],
+    localMethods: [
+      {
+        id: "cash",
+        name: "Cash",
+        icon: "Banknote",
+        description: "Cash payment",
+        requiresTransactionId: false,
+      },
+      {
+        id: "card",
+        name: "Card",
+        icon: "CreditCard",
+        description: "Credit/Debit card payment",
+        requiresTransactionId: true,
+        transactionIdLabel: "Transaction ID",
+        transactionIdPlaceholder: "Enter card transaction ID",
+      },
+      {
+        id: "gcash",
+        name: "GCash",
+        icon: "Smartphone",
+        description: "GCash mobile wallet",
+        requiresTransactionId: true,
+        transactionIdLabel: "GCash Reference",
+        transactionIdPlaceholder: "Enter GCash reference number",
+      },
+      {
+        id: "maya",
+        name: "Maya",
+        icon: "Wallet",
+        description: "Maya (PayMaya) mobile wallet",
+        requiresTransactionId: true,
+        transactionIdLabel: "Maya Reference",
+        transactionIdPlaceholder: "Enter Maya reference number",
+      },
+      {
+        id: "bank_transfer",
+        name: "Bank Transfer",
+        icon: "Building",
+        description: "Direct bank transfer (BPI, BDO, UnionBank, etc.)",
+        requiresTransactionId: true,
+        transactionIdLabel: "Transfer Reference",
+        transactionIdPlaceholder: "Enter bank transfer reference",
+      },
+    ],
+    posPaymentMethods: ["cash", "card", "gcash", "maya"],
+  },
 };

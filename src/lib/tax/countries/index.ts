@@ -32,6 +32,48 @@ export interface FieldDefinition {
   maxLength?: number;
 }
 
+// Payment Gateway definition
+export interface PaymentGateway {
+  id: string;
+  name: string;
+  description: string;
+  logo?: string;
+  website: string;
+  features: string[];
+  supportedCurrencies: string[];
+  settingsFields: PaymentSettingsField[];
+}
+
+export interface PaymentSettingsField {
+  name: string;
+  label: string;
+  type: "text" | "password" | "switch" | "select";
+  required?: boolean;
+  placeholder?: string;
+  helpText?: string;
+  options?: { value: string; label: string }[];
+}
+
+// Local Payment Method (non-gateway based)
+export interface LocalPaymentMethod {
+  id: string;
+  name: string;
+  icon: string; // Lucide icon name
+  description: string;
+  requiresTransactionId?: boolean;
+  transactionIdLabel?: string;
+  transactionIdPlaceholder?: string;
+}
+
+// Payment Configuration for a country
+export interface PaymentConfig {
+  defaultCurrency: string;
+  gateways: PaymentGateway[];
+  localMethods: LocalPaymentMethod[];
+  // Which methods are shown in POS/Billing
+  posPaymentMethods: string[]; // IDs of local methods to show
+}
+
 export interface StateDefinition {
   code: string;
   name: string;
@@ -86,6 +128,9 @@ export interface CountryTaxConfig {
 
   // Financial year
   defaultFinancialYearStart: { month: number; day: number };
+
+  // Payment Configuration
+  paymentConfig: PaymentConfig;
 }
 
 // Export all country configs
