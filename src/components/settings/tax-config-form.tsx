@@ -1365,29 +1365,38 @@ export function TaxConfigForm() {
               <div className="flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
                 <span>Digital Compliance</span>
-                {digitalComplianceEnabled && (
-                  <Badge variant="default" className="ml-2">Active</Badge>
-                )}
+                <Badge variant="secondary" className="ml-2">Coming Soon</Badge>
               </div>
             </AccordionTrigger>
             <AccordionContent className="pt-4">
               <div className="space-y-6">
-                <Card>
+                <Card className="border-dashed opacity-75">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">
-                        {countryConfig.features.eInvoicing ? "E-Invoicing" : "Digital Tax Register"}
-                      </CardTitle>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <CardTitle className="text-base">
+                            {countryConfig.features.eInvoicing ? "E-Invoicing & E-Way Bill" : "Digital Tax Register"}
+                          </CardTitle>
+                          <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+                        </div>
+                        <CardDescription className="text-xs">
+                          {selectedCountry === "IN" && (
+                            <span>
+                              GST e-invoice integration for B2B transactions. Required only for businesses with turnover <strong>&gt; ₹5 Crore</strong> or individual invoices <strong>&gt; ₹50,000</strong>.
+                              <br />
+                              <span className="text-muted-foreground">Most clinics don't need this feature. Will be available in future updates.</span>
+                            </span>
+                          )}
+                          {selectedCountry === "PH" && "Computerized Accounting System (CAS) for BIR compliance - Coming Soon"}
+                          {selectedCountry === "KE" && "TIMS integration for KRA compliance - Coming Soon"}
+                        </CardDescription>
+                      </div>
                       <Switch
-                        checked={watch("digitalCompliance.enabled")}
-                        onCheckedChange={(checked) => setValue("digitalCompliance.enabled", checked)}
+                        checked={false}
+                        disabled={true}
                       />
                     </div>
-                    <CardDescription>
-                      {selectedCountry === "IN" && "Generate e-invoices for B2B transactions (mandatory for turnover > ₹5 Cr)"}
-                      {selectedCountry === "PH" && "Computerized Accounting System (CAS) for BIR compliance"}
-                      {selectedCountry === "KE" && "TIMS integration for KRA compliance"}
-                    </CardDescription>
                   </CardHeader>
                   {digitalComplianceEnabled && (
                     <CardContent className="space-y-4">
