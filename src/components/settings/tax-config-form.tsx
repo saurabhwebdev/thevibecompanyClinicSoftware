@@ -265,7 +265,18 @@ export function TaxConfigForm() {
         const config = loadCountryConfig(data.data.countryCode);
         if (config) {
           setSelectedCountry(data.data.countryCode);
-          reset(data.data);
+
+          // Merge with defaults to ensure emailSettings always has values
+          const defaultData = getDefaultFormData(config);
+          const mergedData = {
+            ...data.data,
+            emailSettings: {
+              ...defaultData.emailSettings,
+              ...(data.data.emailSettings || {}),
+            },
+          };
+
+          reset(mergedData);
           setConfigExists(true);
         }
       } else {
