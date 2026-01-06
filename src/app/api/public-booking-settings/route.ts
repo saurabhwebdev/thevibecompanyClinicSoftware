@@ -40,8 +40,8 @@ export async function GET() {
 
     // Convert Mongoose subdocument to plain object
     const publicSettings = tenant.publicBookingSettings
-      ? tenant.publicBookingSettings.toObject
-        ? tenant.publicBookingSettings.toObject()
+      ? (tenant.publicBookingSettings as any).toObject
+        ? (tenant.publicBookingSettings as any).toObject()
         : { ...tenant.publicBookingSettings }
       : {
           isEnabled: false,
@@ -139,12 +139,13 @@ export async function PUT(request: NextRequest) {
         requirePhoneNumber: true,
         requireEmail: true,
         showDoctorFees: true,
+        captchaEnabled: false,
       };
     }
 
     for (const field of updateFields) {
       if (body[field] !== undefined) {
-        (tenant.publicBookingSettings as Record<string, unknown>)[field] = body[field];
+        (tenant.publicBookingSettings as any)[field] = body[field];
       }
     }
 
@@ -170,8 +171,8 @@ export async function PUT(request: NextRequest) {
     };
 
     // Convert to plain object
-    const savedSettings = tenant.publicBookingSettings.toObject
-      ? tenant.publicBookingSettings.toObject()
+    const savedSettings = (tenant.publicBookingSettings as any).toObject
+      ? (tenant.publicBookingSettings as any).toObject()
       : { ...tenant.publicBookingSettings };
 
     return NextResponse.json({

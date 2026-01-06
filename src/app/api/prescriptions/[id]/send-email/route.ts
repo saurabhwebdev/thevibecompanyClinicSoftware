@@ -41,13 +41,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "Prescription not found" }, { status: 404 });
     }
 
-    const patient = prescription.patientId as {
-      firstName: string;
-      lastName: string;
-      email?: string;
-    };
+    const patient = prescription.patientId as any;
 
-    if (!patient.email) {
+    if (!patient?.email) {
       return NextResponse.json(
         { error: "Patient does not have an email address" },
         { status: 400 }
@@ -63,14 +59,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
       );
     }
 
-    const doctor = prescription.doctorId as { name: string };
+    const doctor = prescription.doctorId as any;
 
     // Send prescription email
     await sendPrescriptionEmail({
-      patientEmail: patient.email,
-      patientName: `${patient.firstName} ${patient.lastName}`,
+      patientEmail: patient?.email,
+      patientName: `${patient?.firstName} ${patient?.lastName}`,
       prescriptionId: prescription.prescriptionId,
-      doctorName: doctor.name,
+      doctorName: doctor?.name,
       clinicName: session.user.tenant.name,
       prescriptionDate: format(prescription.prescriptionDate, "MMM dd, yyyy"),
       medications: prescription.medications.map((med) => ({

@@ -120,7 +120,7 @@ export async function PUT(
 
     for (const field of updateFields) {
       if (body[field] !== undefined) {
-        (schedule as Record<string, unknown>)[field] = body[field];
+        (schedule as any)[field] = body[field];
       }
     }
 

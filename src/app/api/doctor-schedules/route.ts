@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
 
       for (const field of updateFields) {
         if (body[field] !== undefined) {
-          (existingSchedule as Record<string, unknown>)[field] = body[field];
+          (existingSchedule as any)[field] = body[field];
         }
       }
 

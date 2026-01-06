@@ -70,10 +70,10 @@ export async function GET(request: NextRequest) {
 
     // Format doctor data
     const doctors = activeDoctors.map((schedule) => {
-      const doctor = schedule.doctorId as { _id: string; name: string; email: string };
+      const doctor = schedule.doctorId as any;
       return {
-        id: doctor._id,
-        name: doctor.name,
+        id: doctor?._id,
+        name: doctor?.name,
         specialization: schedule.specialization,
         qualifications: schedule.qualifications,
         bio: schedule.bio,

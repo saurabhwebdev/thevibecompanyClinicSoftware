@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
       const patients = await Patient.find(query).select("email firstName lastName");
       emailList = patients.map((p) => ({
-        email: p.email,
+        email: p.email!,
         name: `${p.firstName} ${p.lastName}`,
       }));
     } else if (recipientType === "suppliers") {
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
       const suppliers = await Supplier.find(query).select("email name");
       emailList = suppliers.map((s) => ({
-        email: s.email,
+        email: s.email!,
         name: s.name,
       }));
     }

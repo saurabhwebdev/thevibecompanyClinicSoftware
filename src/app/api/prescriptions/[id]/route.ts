@@ -5,6 +5,7 @@ import dbConnect from "@/lib/db/mongoose";
 import Prescription from "@/models/Prescription";
 import { sendPrescriptionEmail, isEmailEnabled } from "@/lib/email";
 import { format } from "date-fns";
+import mongoose from "mongoose";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -104,7 +105,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
           // When marking as dispensed, set dispensed date and user
           prescription.isDispensed = true;
           prescription.dispensedDate = new Date();
-          prescription.dispensedBy = session.user.id;
+          prescription.dispensedBy = new mongoose.Types.ObjectId(session.user.id);
         } else {
           (prescription as unknown as Record<string, unknown>)[field] = body[field];
         }
