@@ -238,10 +238,69 @@ src/
 
 ### Vercel (Recommended)
 
-1. Push your code to GitHub
-2. Import repository in Vercel
-3. Add environment variables
-4. Deploy
+1. **Push your code to GitHub** (Already done!)
+   - Repository: https://github.com/saurabhwebdev/thevibecompanyClinicSoftware
+
+2. **Sign in to Vercel**
+   - Go to [vercel.com](https://vercel.com)
+   - Sign in with your GitHub account
+
+3. **Import your repository**
+   - Click "Add New" → "Project"
+   - Select "thevibecompanyClinicSoftware" from your GitHub repositories
+   - Click "Import"
+
+4. **Configure your project**
+   - Framework Preset: Next.js (should auto-detect)
+   - Root Directory: ./
+   - Build Command: `npm run build` (default)
+   - Output Directory: `.next` (default)
+
+5. **Add environment variables**
+   Click "Environment Variables" and add the following:
+
+   ```
+   MONGODB_URI=mongodb+srv://fretsoindia_db_user:25687618@fretsocluster.zmc7caw.mongodb.net/clinicsoft
+   NEXTAUTH_URL=https://your-app-name.vercel.app
+   NEXTAUTH_SECRET=a3f1d2fc4e554e2e3b1fe80ed485119f53c97291eaa176de16b660c066fad6c9
+   JWT_SECRET=85fa3f4ad1976626350f1449717b50eb5db5748be06b0b36c0218047ac5b8021
+   JWT_EXPIRES_IN=7d
+   NEXT_PUBLIC_APP_NAME=Clinic Management System
+   NEXT_PUBLIC_APP_URL=https://your-app-name.vercel.app
+   NEXT_PUBLIC_APP_ENV=production
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_SECURE=false
+   SMTP_USER=worlddj0@gmail.com
+   SMTP_PASSWORD=uszdlnkoxobyunve
+   EMAIL_FROM=worlddj0@gmail.com
+   ```
+
+   **Important**: After deployment, update `NEXTAUTH_URL` and `NEXT_PUBLIC_APP_URL` with your actual Vercel deployment URL.
+
+6. **Deploy**
+   - Click "Deploy"
+   - Wait for the build to complete (2-5 minutes)
+   - Once deployed, click "Visit" to view your live application
+
+7. **Post-Deployment Steps**
+   - Copy your Vercel deployment URL (e.g., `https://your-app.vercel.app`)
+   - Go to Vercel Dashboard → Your Project → Settings → Environment Variables
+   - Update `NEXTAUTH_URL` and `NEXT_PUBLIC_APP_URL` with your actual deployment URL
+   - Redeploy from the Deployments tab
+
+8. **Verify Deployment**
+   - Visit your application URL
+   - Test user registration
+   - Test email sending functionality
+   - Verify database connection is working
+
+### Important Notes
+
+- MongoDB Atlas connection is already configured in the environment variables
+- Ensure your MongoDB Atlas cluster allows connections from all IPs (0.0.0.0/0) or add Vercel's IP ranges
+- Email functionality requires Gmail App Password (already configured)
+- First user registration will create the admin account
 
 ## 📝 License
 
