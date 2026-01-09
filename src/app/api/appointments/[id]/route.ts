@@ -5,9 +5,10 @@ import dbConnect from "@/lib/db/mongoose";
 import { Types } from "mongoose";
 import Appointment from "@/models/Appointment";
 import Patient from "@/models/Patient";
-import { sendAppointmentCancellationEmail, sendAppointmentRescheduleEmail, isEmailEnabled } from "@/lib/email";
+import { sendAppointmentCancellationEmail, sendAppointmentRescheduleEmail, sendAppointmentCheckedInEmail, isEmailEnabled } from "@/lib/email";
 import { format } from "date-fns";
 import { isValidObjectId } from "@/lib/security";
+import { generateNextToken, refreshEstimatedWaitTimes } from "@/lib/token-generator";
 
 // Valid status transitions
 const VALID_STATUS_TRANSITIONS: Record<string, string[]> = {
@@ -151,6 +152,51 @@ export async function PUT(request: NextRequest, context: RouteContext) {
           }).catch((err) => console.error("Failed to send cancellation email:", err));
         }
       }
+    }
+
+    // Handle check-in - Generate token number
+    if (body.status === "checked-in" && appointment.status !== "checked-in") {
+      const tokenData = await generateNextToken(session.user.tenant.id, appointment.appointmentDate);
+      appointment.tokenNumber = tokenData.tokenNumber;
+      appointment.tokenDisplayNumber = tokenData.tokenDisplayNumber;
+      appointment.checkedInAt = new Date();
+      appointment.estimatedWaitMinutes = tokenData.estimatedWaitMinutes;
+
+      // Refresh wait times for other patients
+      refreshEstimatedWaitTimes(session.user.tenant.id, appointment.appointmentDate).catch(
+        (err) => console.error("Failed to refresh wait times:", err)
+      );
+
+      // Send check-in confirmation email with token
+      if (patient?.email) {
+        const emailEnabled = await isEmailEnabled(session.user.tenant.id, "appointmentConfirmationEmail");
+        if (emailEnabled) {
+          const doctor = await appointment.populate("doctorId", "name");
+          const populatedDoctor = doctor.doctorId as { name?: string } | undefined;
+          sendAppointmentCheckedInEmail({
+            patientEmail: patient.email,
+            patientName: `${patient.firstName} ${patient.lastName}`,
+            clinicName: session.user.tenant.name,
+            appointmentDate: format(appointment.appointmentDate, "MMMM dd, yyyy"),
+            appointmentTime: appointment.startTime,
+            doctorName: populatedDoctor?.name || "Doctor",
+            tokenNumber: tokenData.tokenDisplayNumber,
+            estimatedWaitMinutes: tokenData.estimatedWaitMinutes,
+            queuePosition: tokenData.tokenNumber,
+          }).catch((err) => console.error("Failed to send check-in email:", err));
+        }
+      }
+    }
+
+    // Handle in-progress - Mark service started
+    if (body.status === "in-progress" && appointment.status !== "in-progress") {
+      appointment.servingStartedAt = new Date();
+      appointment.calledAt = appointment.calledAt || new Date();
+
+      // Refresh wait times for remaining patients
+      refreshEstimatedWaitTimes(session.user.tenant.id, appointment.appointmentDate).catch(
+        (err) => console.error("Failed to refresh wait times:", err)
+      );
     }
 
     // Handle rescheduling

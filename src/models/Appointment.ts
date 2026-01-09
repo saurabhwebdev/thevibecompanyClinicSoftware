@@ -9,7 +9,7 @@ export interface IAppointment extends Document {
   endTime: string;
   duration: number; // in minutes
   type: "consultation" | "follow-up" | "procedure" | "emergency" | "routine-checkup" | "vaccination";
-  status: "scheduled" | "confirmed" | "in-progress" | "completed" | "cancelled" | "no-show";
+  status: "scheduled" | "confirmed" | "checked-in" | "in-progress" | "completed" | "cancelled" | "no-show";
   reason: string;
   notes?: string;
   symptoms?: string[];
@@ -26,6 +26,13 @@ export interface IAppointment extends Document {
   createdBy: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
+  // Token system fields
+  tokenNumber?: number; // Daily sequential number (1, 2, 3...)
+  tokenDisplayNumber?: string; // Formatted token like "T-001"
+  checkedInAt?: Date; // When patient checked in
+  calledAt?: Date; // When patient was called
+  servingStartedAt?: Date; // When service actually started
+  estimatedWaitMinutes?: number; // Estimated wait time in minutes
 }
 
 const AppointmentSchema: Schema<IAppointment> = new Schema(
@@ -68,7 +75,7 @@ const AppointmentSchema: Schema<IAppointment> = new Schema(
     },
     status: {
       type: String,
-      enum: ["scheduled", "confirmed", "in-progress", "completed", "cancelled", "no-show"],
+      enum: ["scheduled", "confirmed", "checked-in", "in-progress", "completed", "cancelled", "no-show"],
       default: "scheduled",
     },
     reason: {
@@ -118,6 +125,31 @@ const AppointmentSchema: Schema<IAppointment> = new Schema(
       ref: "User",
       required: true,
     },
+    // Token system fields
+    tokenNumber: {
+      type: Number,
+      default: null,
+    },
+    tokenDisplayNumber: {
+      type: String,
+      default: null,
+    },
+    checkedInAt: {
+      type: Date,
+      default: null,
+    },
+    calledAt: {
+      type: Date,
+      default: null,
+    },
+    servingStartedAt: {
+      type: Date,
+      default: null,
+    },
+    estimatedWaitMinutes: {
+      type: Number,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -130,6 +162,9 @@ AppointmentSchema.index({ tenantId: 1, appointmentDate: 1 });
 AppointmentSchema.index({ tenantId: 1, patientId: 1 });
 AppointmentSchema.index({ tenantId: 1, doctorId: 1, appointmentDate: 1 });
 AppointmentSchema.index({ tenantId: 1, status: 1 });
+// Token system indexes
+AppointmentSchema.index({ tenantId: 1, appointmentDate: 1, tokenNumber: 1 });
+AppointmentSchema.index({ tenantId: 1, tokenDisplayNumber: 1 });
 
 const Appointment: Model<IAppointment> =
   mongoose.models.Appointment || mongoose.model<IAppointment>("Appointment", AppointmentSchema);

@@ -21,6 +21,10 @@ import {
   Check,
   XCircle,
   AlertCircle,
+  UserCheck,
+  Play,
+  Tv,
+  Hash,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -101,6 +105,11 @@ interface Appointment {
   reason: string;
   notes?: string;
   priority: string;
+  // Token system fields
+  tokenNumber?: number;
+  tokenDisplayNumber?: string;
+  checkedInAt?: string;
+  estimatedWaitMinutes?: number;
 }
 
 interface AppointmentFormData {
@@ -142,6 +151,7 @@ const appointmentStatuses = [
   { value: "all", label: "All Status" },
   { value: "scheduled", label: "Scheduled" },
   { value: "confirmed", label: "Confirmed" },
+  { value: "checked-in", label: "Checked In" },
   { value: "in-progress", label: "In Progress" },
   { value: "completed", label: "Completed" },
   { value: "cancelled", label: "Cancelled" },
@@ -478,7 +488,11 @@ export default function AppointmentsPage() {
 
       const result = await response.json();
       if (result.success) {
-        toast.success(`Status updated to ${newStatus}`);
+        if (newStatus === "checked-in" && result.data?.tokenDisplayNumber) {
+          toast.success(`Patient checked in! Token: ${result.data.tokenDisplayNumber}`);
+        } else {
+          toast.success(`Status updated to ${newStatus.replace("-", " ")}`);
+        }
         fetchAppointments();
       } else {
         toast.error(result.error || "Failed to update status");
@@ -512,6 +526,7 @@ export default function AppointmentsPage() {
     const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
       scheduled: "secondary",
       confirmed: "default",
+      "checked-in": "default",
       "in-progress": "default",
       completed: "outline",
       cancelled: "destructive",
@@ -568,12 +583,20 @@ export default function AppointmentsPage() {
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Appointments</h2>
           <p className="text-sm sm:text-base text-muted-foreground">Manage patient appointments</p>
         </div>
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button onClick={() => setIsCreateDialogOpen(true)} className="w-full sm:w-auto">
-            <Plus className="mr-2 h-4 w-4" />
-            New Appointment
-          </Button>
-        </motion.div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button variant="outline" onClick={() => window.open('/token-display', '_blank')} className="w-full sm:w-auto">
+              <Tv className="mr-2 h-4 w-4" />
+              Token Display
+            </Button>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button onClick={() => setIsCreateDialogOpen(true)} className="w-full sm:w-auto">
+              <Plus className="mr-2 h-4 w-4" />
+              New Appointment
+            </Button>
+          </motion.div>
+        </div>
       </motion.div>
 
       <Card>
@@ -650,6 +673,7 @@ export default function AppointmentsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>ID</TableHead>
+                    <TableHead>Token</TableHead>
                     <TableHead>Patient</TableHead>
                     <TableHead>Date & Time</TableHead>
                     <TableHead>Doctor</TableHead>
@@ -668,6 +692,18 @@ export default function AppointmentsPage() {
                       className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
                     >
                       <TableCell className="font-mono text-sm">{apt.appointmentId}</TableCell>
+                      <TableCell>
+                        {apt.tokenDisplayNumber ? (
+                          <div className="flex items-center gap-1">
+                            <Badge variant="outline" className="font-mono font-bold text-primary bg-primary/10 border-primary/30">
+                              <Hash className="h-3 w-3 mr-1" />
+                              {apt.tokenDisplayNumber}
+                            </Badge>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-xs">-</span>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <div>
                           <p className="font-medium">{apt.patientId?.firstName} {apt.patientId?.lastName}</p>
@@ -707,8 +743,13 @@ export default function AppointmentsPage() {
                               </DropdownMenuItem>
                             )}
                             {(apt.status === "confirmed" || apt.status === "scheduled") && (
+                              <DropdownMenuItem onClick={() => handleStatusChange(apt, "checked-in")}>
+                                <UserCheck className="mr-2 h-4 w-4" /> Check-in
+                              </DropdownMenuItem>
+                            )}
+                            {apt.status === "checked-in" && (
                               <DropdownMenuItem onClick={() => handleStatusChange(apt, "in-progress")}>
-                                <AlertCircle className="mr-2 h-4 w-4" /> Start
+                                <Play className="mr-2 h-4 w-4" /> Start Serving
                               </DropdownMenuItem>
                             )}
                             {apt.status === "in-progress" && (

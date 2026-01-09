@@ -1042,6 +1042,128 @@ export async function sendAppointmentRescheduleEmail(
   });
 }
 
+// Send check-in confirmation email with token
+interface AppointmentCheckedInData {
+  patientEmail: string;
+  patientName: string;
+  clinicName: string;
+  appointmentDate: string;
+  appointmentTime: string;
+  doctorName: string;
+  tokenNumber: string;
+  estimatedWaitMinutes: number;
+  queuePosition: number;
+}
+
+export async function sendAppointmentCheckedInEmail(
+  data: AppointmentCheckedInData
+): Promise<boolean> {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Check-in Confirmed - Your Token Number</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #EFF2EF;">
+      <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td align="center" style="padding: 40px 0;">
+            <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+              <tr>
+                <td style="padding: 40px 40px 20px; text-align: center; background-color: #17B890; border-radius: 8px 8px 0 0;">
+                  <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: 600;">
+                    Check-in Successful
+                  </h1>
+                  <p style="margin: 10px 0 0; color: rgba(255,255,255,0.9); font-size: 14px;">
+                    ${data.clinicName}
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 40px;">
+                  <h2 style="margin: 0 0 20px; color: #232C33; font-size: 20px; font-weight: 600;">
+                    Hello ${data.patientName},
+                  </h2>
+                  <p style="margin: 0 0 20px; color: #5A6570; font-size: 16px; line-height: 1.6;">
+                    You have been successfully checked in. Please wait for your token number to be called.
+                  </p>
+
+                  <!-- Token Display -->
+                  <div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #4D9DE0 0%, #17B890 100%); border-radius: 12px; margin-bottom: 25px;">
+                    <p style="margin: 0 0 10px; color: rgba(255,255,255,0.9); font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">
+                      Your Token Number
+                    </p>
+                    <p style="margin: 0; color: #ffffff; font-size: 56px; font-weight: 700; letter-spacing: 2px;">
+                      ${data.tokenNumber}
+                    </p>
+                    <p style="margin: 15px 0 0; color: rgba(255,255,255,0.8); font-size: 13px;">
+                      Queue Position: #${data.queuePosition}
+                    </p>
+                  </div>
+
+                  <!-- Estimated Wait Time -->
+                  <div style="padding: 20px; background-color: #FEF3C7; border-radius: 8px; text-align: center; margin-bottom: 25px;">
+                    <p style="margin: 0 0 5px; color: #92400E; font-size: 13px; text-transform: uppercase;">
+                      Estimated Wait Time
+                    </p>
+                    <p style="margin: 0; color: #78350F; font-size: 24px; font-weight: 600;">
+                      ${data.estimatedWaitMinutes === 0 ? 'You are next!' : `~${data.estimatedWaitMinutes} minutes`}
+                    </p>
+                  </div>
+
+                  <!-- Appointment Details -->
+                  <div style="padding: 20px; background-color: #F3F4F6; border-radius: 8px; margin-bottom: 20px;">
+                    <table style="width: 100%;">
+                      <tr>
+                        <td style="padding: 8px 0;">
+                          <span style="color: #5A6570; font-size: 13px;">Date:</span>
+                          <span style="color: #232C33; font-size: 14px; margin-left: 8px; font-weight: 500;">${data.appointmentDate}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0;">
+                          <span style="color: #5A6570; font-size: 13px;">Scheduled Time:</span>
+                          <span style="color: #232C33; font-size: 14px; margin-left: 8px;">${data.appointmentTime}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding: 8px 0;">
+                          <span style="color: #5A6570; font-size: 13px;">Doctor:</span>
+                          <span style="color: #232C33; font-size: 14px; margin-left: 8px;">Dr. ${data.doctorName}</span>
+                        </td>
+                      </tr>
+                    </table>
+                  </div>
+
+                  <p style="margin: 0; color: #5A6570; font-size: 14px; line-height: 1.6; text-align: center;">
+                    Please keep an eye on the display board or listen for your token number to be called.
+                  </p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 20px 40px; text-align: center; background-color: #F9FAFB; border-radius: 0 0 8px 8px;">
+                  <p style="margin: 0; color: #9CA3AF; font-size: 12px;">
+                    © ${new Date().getFullYear()} ${appName}. All rights reserved.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  return sendEmail({
+    to: data.patientEmail,
+    subject: `Check-in Confirmed - Token ${data.tokenNumber} - ${data.clinicName}`,
+    html,
+  });
+}
+
 // ==================== INVENTORY MODULE EMAILS ====================
 
 // Send low stock alert email
